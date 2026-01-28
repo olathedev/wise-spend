@@ -1,0 +1,13 @@
+import Header from '@/components/layout/Header';
+
+export default function AICoachPage() {
+  return (
+    <>
+      <Header />
+      <div className="bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <h2 className="text-2xl font-bold mb-4">AI Coach</h2>
+        <p className="text-slate-500 dark:text-slate-400">Chat with your AI financial coach here.</p>
+      </div>
+    </>
+  );
+}
