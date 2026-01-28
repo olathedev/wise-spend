@@ -1,11 +1,19 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
       <div className="text-center space-y-8 px-4">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <span className="material-icons-round text-5xl text-primary">account_balance_wallet</span>
+          <Image
+            src="/logo.jpeg"
+            alt="WiseSpend Logo - Financial AI Coach"
+            width={64}
+            height={64}
+            className="rounded-lg"
+            priority
+          />
           <h1 className="text-5xl font-bold text-slate-900 dark:text-white">WiseSpend</h1>
         </div>
         <h2 className="text-4xl font-bold text-slate-900 dark:text-white">

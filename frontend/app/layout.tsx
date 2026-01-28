@@ -11,6 +11,21 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "WiseSpend - Financial AI Coach",
   description: "Transform financial fog into actionable resilience",
+  icons: {
+    icon: '/logo.jpeg',
+    apple: '/logo.jpeg',
+  },
+  openGraph: {
+    title: "WiseSpend - Financial AI Coach",
+    description: "Transform financial fog into actionable resilience",
+    images: ['/logo.jpeg'],
+  },
+  twitter: {
+    card: 'summary',
+    title: "WiseSpend - Financial AI Coach",
+    description: "Transform financial fog into actionable resilience",
+    images: ['/logo.jpeg'],
+  },
 };
 
 export default function RootLayout({

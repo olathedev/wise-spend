@@ -3,15 +3,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/layout/Header';
 import { MOCK_TRANSACTIONS, CATEGORIES } from '@/components/transactions/constants';
-import { Category, Transaction, Insight } from '@/components/types';
+import { Category, Insight, Transaction } from '@/components/types';
 import { getFinancialInsight } from '@/components/transactions/services/geminiService';
 import CategoryBadge from '@/components/transactions/CategoryBadge';
+import ReceiptModal from '@/components/transactions/ReceiptModal';
 
 export default function TransactionsPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [insight, setInsight] = useState<Insight | null>(null);
   const [loadingInsight, setLoadingInsight] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     const fetchInsight = async () => {
@@ -108,7 +110,12 @@ export default function TransactionsPage() {
                       {t.amount < 0 ? `-$${Math.abs(t.amount).toFixed(2)}` : `+$${t.amount.toFixed(2)}`}
                     </td>
                     <td className="px-6 py-5">
-                      <button className="text-xs font-bold text-primary hover:underline">View Receipt</button>
+                      <button 
+                        onClick={() => setSelectedTransaction(t)}
+                        className="text-xs font-bold text-primary hover:underline"
+                      >
+                        View Receipt
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -145,7 +152,7 @@ export default function TransactionsPage() {
               </div>
             ) : (
               <p className="text-sm font-medium text-white dark:text-black leading-relaxed italic">
-                "{insight?.tip || "Analyze your spending to get personalized tips."}"
+                &ldquo;{insight?.tip || 'Analyze your spending to get personalized tips.'}&rdquo;
               </p>
             )}
             <div className="mt-4 pt-4 border-t border-primary/10 flex justify-between items-center">
@@ -176,6 +183,12 @@ export default function TransactionsPage() {
           </div>
         </div>
       </div>
+
+      {/* Receipt Modal */}
+      <ReceiptModal 
+        transaction={selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+      />
     </>
   );
 }
