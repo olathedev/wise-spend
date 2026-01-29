@@ -5,9 +5,30 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { errorHandler } from '@presentation/middleware/errorHandler';
 import { routes } from '@presentation/routes';
+import { initializeAIService } from '@infrastructure/services';
+import { initializeDatabase } from '@infrastructure/database';
+import { Logger } from '@shared/utils/logger';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
+
+const initializeServices = async () => {
+  try {
+    await initializeDatabase();
+    Logger.info('Database initialized successfully');
+  } catch (error) {
+    Logger.error('Database initialization failed:', error);
+    Logger.error('Server will continue without database connection');
+  }
+
+  try {
+    initializeAIService();
+    Logger.info('AI service initialized successfully');
+  } catch (error) {
+    Logger.warn('AI service initialization failed', error);
+    Logger.warn('Agentic features will not be available');
+  }
+};
 
 // Middleware
 app.use(helmet());
@@ -19,17 +40,40 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', routes);
 
 // Health check
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/health', async (_req, res) => {
+  const { getDatabase } = await import('@infrastructure/database');
+  
+  let dbStatus = 'disconnected';
+  try {
+    const db = getDatabase();
+    dbStatus = db.getConnectionStatus() ? 'connected' : 'disconnected';
+  } catch (error) {
+    dbStatus = 'not initialized';
+  }
+
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: dbStatus,
+  });
 });
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+const startServer = async () => {
+  await initializeServices();
+
+  app.listen(PORT, () => {
+    Logger.info(`🚀 Server is running on port ${PORT}`);
+    Logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+};
+
+startServer().catch((error) => {
+  Logger.error('Failed to start server:', error);
+  process.exit(1);
 });
 
 export default app;
