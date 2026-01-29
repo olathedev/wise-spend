@@ -46,10 +46,5 @@ export const NAVIGATION_ITEMS = [
     icon: <Bot size={20} />,
     href: '/dashboard/ai-coach',
   },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: <Settings size={20} />,
-    href: '/dashboard/settings',
-  },
+ 
 ];

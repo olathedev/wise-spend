@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, ShoppingBag, Verified } from 'lucide-react';
 import StatCard from './StatCard';
+import SnapReceiptButton from '../receipt/SnapReceiptButton';
 
 export default function FinancialSummaryCards() {
   return (
@@ -26,15 +27,7 @@ export default function FinancialSummaryCards() {
         trend="Top 5%"
         trendType="positive"
       />
-      <button className="group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border-2 border-dashed border-teal-200 dark:border-teal-900/50 bg-teal-50/30 dark:bg-teal-900/10 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300">
-        <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
-          <span className="material-icons-round text-3xl">add</span>
-        </div>
-        <div className="text-center">
-          <p className="text-sm font-bold text-teal-700 dark:text-teal-400">Snap Receipt</p>
-          <p className="text-[10px] uppercase tracking-widest font-bold text-teal-600/60 dark:text-teal-400/60">Add New Expense</p>
-        </div>
-      </button>
+      <SnapReceiptButton />
     </div>
   );
 }

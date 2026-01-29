@@ -9,6 +9,18 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Essentials',
     status: 'AI Verified',
     amount: -142.30,
+    address: '123 Market Street, San Francisco, CA 94102',
+    time: '06:40 PM',
+    total: 142.30,
+    items: [
+      { name: 'Organic Chicken Breast', price: 24.99, type: 'ESSENTIAL' },
+      { name: 'Fresh Vegetables Mix', price: 12.50, type: 'ESSENTIAL' },
+      { name: 'Whole Grain Bread', price: 5.99, type: 'ESSENTIAL' },
+      { name: 'Organic Milk', price: 6.99, type: 'ESSENTIAL' },
+      { name: 'Artisan Cheese', price: 18.50, type: 'LUXURY' },
+      { name: 'Organic Berries', price: 12.99, type: 'LUXURY' },
+      { name: 'Various Groceries', price: 60.34, type: 'ESSENTIAL' },
+    ],
   },
   {
     id: '2',
@@ -18,6 +30,12 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Lifestyle',
     status: 'AI Verified',
     amount: -18.99,
+    address: 'Online Subscription',
+    time: '11:00 AM',
+    total: 18.99,
+    items: [
+      { name: 'Premium Plan Monthly', price: 18.99, type: 'LUXURY' },
+    ],
   },
   {
     id: '3',
@@ -27,6 +45,13 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Bills',
     status: 'AI Verified',
     amount: -85.00,
+    address: '456 Power Avenue, San Francisco, CA 94103',
+    time: '09:15 AM',
+    total: 85.00,
+    items: [
+      { name: 'Electricity Bill', price: 65.00, type: 'ESSENTIAL' },
+      { name: 'Water Bill', price: 20.00, type: 'ESSENTIAL' },
+    ],
   },
   {
     id: '4',
@@ -36,6 +61,12 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Lifestyle',
     status: 'AI Verified',
     amount: -24.50,
+    address: 'Ride Share Service',
+    time: '08:30 PM',
+    total: 24.50,
+    items: [
+      { name: 'UberX Ride', price: 24.50, type: 'LUXURY' },
+    ],
   },
   {
     id: '5',
@@ -45,6 +76,12 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
     category: 'Lifestyle',
     status: 'AI Verified',
     amount: -6.50,
+    address: '789 Coffee Street, San Francisco, CA 94104',
+    time: '09:15 AM',
+    total: 6.50,
+    items: [
+      { name: 'Latte', price: 6.50, type: 'LUXURY' },
+    ],
   },
 ];
 

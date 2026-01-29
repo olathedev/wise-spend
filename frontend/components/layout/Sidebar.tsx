@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { LogOut } from 'lucide-react';
 import { NAVIGATION_ITEMS } from '../constants';
 import { AppView } from '../types';
@@ -18,7 +19,6 @@ const Sidebar: React.FC = () => {
     if (pathname.startsWith('/dashboard/goals')) return 'goals';
     if (pathname.startsWith('/dashboard/grow')) return 'grow';
     if (pathname.startsWith('/dashboard/ai-coach')) return 'ai-coach';
-    if (pathname.startsWith('/dashboard/settings')) return 'settings';
     return 'dashboard';
   };
 
@@ -34,9 +34,14 @@ const Sidebar: React.FC = () => {
   return (
     <div className="w-64 h-full bg-white border-r border-gray-100 flex flex-col p-6">
       <div className="flex items-center gap-2 mb-10 px-2">
-        <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center">
-          <div className="w-4 h-4 bg-white rounded-sm" />
-        </div>
+        <Image
+          src="/logo.jpeg"
+          alt="WiseSpend Logo"
+          width={32}
+          height={32}
+          className="rounded-lg"
+          priority
+        />
         <span className="text-xl font-bold text-gray-800">WiseSpend</span>
       </div>
 

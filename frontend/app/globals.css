@@ -76,6 +76,19 @@ body {
   animation: bounce-slow 4s infinite ease-in-out;
 }
 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1 / 1;
+}
+
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
