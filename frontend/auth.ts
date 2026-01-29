@@ -17,5 +17,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log("Google Account Response (ID Token):", account);
       return true;
     },
+    async jwt({ token, account }) {
+      if (account) {
+        token.id_token = account.id_token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.id_token = token.id_token as string;
+      return session;
+    },
   },
 });

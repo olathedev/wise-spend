@@ -2,7 +2,7 @@ export default function Header() {
   return (
     <header className="flex justify-between items-center mb-10">
       <div>
-        <h2 className="text-3xl font-bold text-black dark:text-black">Welcome back, Daniel</h2>
+        <h2 className="text-2xl font-semibold text-slate-900">Welcome back, Daniel</h2>
         <p className="text-slate-500 dark:text-slate-400">Your financial vision is crystal clear today.</p>
       </div>
       <div className="flex items-center gap-6">

@@ -1,0 +1,111 @@
+'use client';
+
+import React, { useRef } from 'react';
+import { motion, useScroll } from 'framer-motion';
+import { Lightbulb, TrendingUp, PieChart, ArrowRight, BookOpen, Target } from 'lucide-react';
+import Link from 'next/link';
+
+const INSIGHTS = [
+    {
+        id: 1,
+        title: "The 50/30/20 Rule",
+        category: "Smart Tip",
+        desc: "Allocate your income: 50% Needs, 30% Wants, 20% Savings.",
+        icon: PieChart,
+        color: "text-indigo-600",
+        bg: "bg-indigo-50",
+        border: "border-indigo-100"
+    },
+    {
+        id: 2,
+        title: "Compound Growth",
+        category: "Wealth",
+        desc: "Investing $500/mo at 7% return can grow to $85k in 10 years.",
+        icon: TrendingUp,
+        color: "text-emerald-600",
+        bg: "bg-emerald-50",
+        border: "border-emerald-100"
+    },
+    {
+        id: 3,
+        title: "Inflation vs. Cash",
+        category: "Alert",
+        desc: "Holding too much cash? Inflation eats 3% of its value yearly.",
+        icon: Target,
+        color: "text-amber-600",
+        bg: "bg-amber-50",
+        border: "border-amber-100"
+    },
+    {
+        id: 4,
+        title: "Emergency Fund",
+        category: "Basics",
+        desc: "Aim for 3-6 months of expenses in a high-yield savings account.",
+        icon: Lightbulb,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+        border: "border-blue-100"
+    }
+];
+
+export default function FinancialInsights() {
+    const ref = useRef(null);
+
+    return (
+        <div className="mb-8">
+            <div className="flex justify-between items-end mb-4 px-1">
+                <div>
+                    <h3 className="text-xl font-bold text-slate-900">Financial Insights</h3>
+                    <p className="text-sm text-slate-500">AI-curated financial insights for you</p>
+                </div>
+                <Link href="/literacy" className="text-sm font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 transition-colors">
+                    See all lessons <ArrowRight size={16} />
+                </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                {/* CTA Card */}
+                <div className="w-full h-44 rounded-2xl bg-slate-900 p-6 flex flex-col justify-between relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl -mr-10 -mt-10 transition-all group-hover:bg-teal-500/30"></div>
+                    <div>
+                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-3 text-white backdrop-blur-sm">
+                            <BookOpen size={20} />
+                        </div>
+                        <h4 className="text-lg font-bold text-white leading-tight">Master Your Money</h4>
+                    </div>
+                    <div>
+                        <p className="text-slate-400 text-xs mb-3">Level up your financial IQ today.</p>
+                        <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full w-1/3 bg-teal-500 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {INSIGHTS.slice(0, 3).map((item) => (
+                    <motion.div
+                        whileHover={{ y: -4 }}
+                        key={item.id}
+                        className={`w-full h-44 rounded-2xl p-6 flex flex-col justify-between border ${item.border} ${item.bg} hover:shadow-sm transition-all`}
+                    >
+                        <div className="flex justify-between items-start">
+                            <div className={`p-2 rounded-xl bg-white/60 backdrop-blur-sm ${item.color}`}>
+                                <item.icon size={20} />
+                            </div>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${item.color} bg-white/50 px-2 py-1 rounded-full`}>
+                                {item.category}
+                            </span>
+                        </div>
+                        <div>
+                            <h4 className={`text-base font-bold text-slate-900 mb-1`}>{item.title}</h4>
+                            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                {item.desc}
+                            </p>
+                        </div>
+                    </motion.div>
+                ))}
+
+            </div>
+        </div>
+    );
+}
