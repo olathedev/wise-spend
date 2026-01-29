@@ -21,12 +21,15 @@
     "dotenv": "^17.2.3",
     "cors": "^2.8.6",
     "helmet": "^8.1.0",
-    "mongoose": "^8.7.0"
+    "mongoose": "^8.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "google-auth-library": "^9.9.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^25.1.0",
     "@types/cors": "^2.8.19",
+    "@types/jsonwebtoken": "^9.0.6",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "eslint": "^9.39.2",
