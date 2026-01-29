@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  TrendingUp, 
-  Target, 
-  Bot, 
+import {
+  LayoutDashboard,
+  Receipt,
+  TrendingUp,
+  Target,
+  Bot,
   Settings,
   Sprout
 } from 'lucide-react';
@@ -15,6 +15,12 @@ export const NAVIGATION_ITEMS = [
     label: 'Dashboard',
     icon: <LayoutDashboard size={20} />,
     href: '/dashboard',
+  },
+  {
+    id: 'grow',
+    label: 'Grow',
+    icon: <Sprout size={20} />,
+    href: '/dashboard/grow',
   },
   {
     id: 'transactions',
@@ -33,12 +39,6 @@ export const NAVIGATION_ITEMS = [
     label: 'Goals',
     icon: <Target size={20} />,
     href: '/dashboard/goals',
-  },
-  {
-    id: 'grow',
-    label: 'Grow',
-    icon: <Sprout size={20} />,
-    href: '/dashboard/grow',
   },
   {
     id: 'ai-coach',

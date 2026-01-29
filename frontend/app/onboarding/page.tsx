@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Target, Sparkles, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AuthCallbackHandler from '@/components/auth/AuthCallbackHandler';
 
 type FormData = {
     monthlyIncome: string;
@@ -80,6 +81,8 @@ export default function OnboardingPage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+            {/* Handle backend API call after NextAuth sign-in */}
+            <AuthCallbackHandler />
 
             <div className="w-full max-w-lg bg-white p-4 sm:p-12 relative overflow-hidden">
                 <AnimatePresence mode="wait">
