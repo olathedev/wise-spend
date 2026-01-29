@@ -78,3 +78,16 @@ export const getSocraticTip = async (goalData: any): Promise<string> => {
   
   return 'Enable AI Coach to get personalized optimization suggestions for this goal.';
 };
+
+// Stream coaching responses
+export async function* streamCoaching(messages: any[], userInput: string): AsyncGenerator<string> {
+  // Simulate streaming response
+  const mockResponse = `I see what you mean. Reducing to twice a week is a great compromise. That would save you approximately $832 per year while still maintaining your ritual. Let's think about this: what if we redirected half of those savings—about $416—directly to your 'Home Downpayment' goal? You'd still have the comfort of your ritual, but you'd also be making meaningful progress toward homeownership. Does that balance feel right to you?`;
+  
+  // Simulate streaming by yielding chunks
+  const words = mockResponse.split(' ');
+  for (let i = 0; i < words.length; i++) {
+    await new Promise(resolve => setTimeout(resolve, 50)); // Simulate network delay
+    yield (i === 0 ? words[i] : ' ' + words[i]);
+  }
+}

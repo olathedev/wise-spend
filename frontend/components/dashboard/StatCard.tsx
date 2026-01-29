@@ -11,20 +11,20 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, trend, trendTyp
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-gray-50 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-start mb-6">
-        <div className="p-3 bg-gray-50 rounded-xl">
+    <div className="bg-white p-5 rounded-3xl border border-gray-50 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-2.5 bg-gray-50 rounded-xl">
           {icon}
         </div>
         {trend && (
-          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getTrendStyles()}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getTrendStyles()}`}>
             {trend}
           </span>
         )}
       </div>
       <div>
-        <p className="text-gray-400 text-sm font-medium mb-1">{label}</p>
-        <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <p className="text-gray-400 text-xs font-semibold mb-1 uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold text-gray-900">{value}</p>
       </div>
     </div>
   );

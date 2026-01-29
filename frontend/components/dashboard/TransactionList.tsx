@@ -57,31 +57,30 @@ export default function TransactionList() {
         {transactions.map((transaction) => (
           <div
             key={transaction.id}
-            className="flex items-center justify-between p-4 rounded-xl border border-slate-50 dark:border-slate-200 bg-slate-200 dark:bg-slate-50/30"
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-50 dark:border-slate-200 bg-slate-200 dark:bg-slate-50/30 gap-4"
           >
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 ${transaction.iconBg} rounded-lg flex items-center justify-center text-white overflow-hidden`}>
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className={`w-12 h-12 ${transaction.iconBg} rounded-lg flex items-center justify-center text-white overflow-hidden shrink-0`}>
                 <span className="material-icons-round">{transaction.icon}</span>
               </div>
-              <div>
-                <p className="font-bold text-black dark:text-black">{transaction.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="min-w-0">
+                <p className="font-bold text-black dark:text-black truncate">{transaction.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   {transaction.date} • {transaction.method}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-6 text-right">
-              <div>
+            <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto text-right">
+              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                    transaction.category === 'LUXURY'
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${transaction.category === 'LUXURY'
                       ? 'text-orange-500 bg-orange-50 dark:bg-orange-900/20'
                       : 'text-teal-500 bg-teal-50 dark:bg-teal-900/20'
-                  }`}
+                    }`}
                 >
                   {transaction.category}
                 </span>
-                <p className="font-bold text-lg text-black dark:text-black">{transaction.amount}</p>
+                <p className="font-bold text-lg text-black dark:text-black ml-auto sm:ml-0">{transaction.amount}</p>
               </div>
               <button className="p-2 text-slate-400 hover:text-primary transition-colors">
                 <span className="material-icons-round">chevron_right</span>

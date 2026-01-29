@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import Providers from "@/providers";
 
-const outfit = Outfit({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-outfit",
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -42,8 +43,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={`${outfit.variable} font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen`}>
-        {children}
+      <body className={`${dmSans.className} bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen`}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

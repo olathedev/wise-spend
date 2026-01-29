@@ -3,6 +3,7 @@ export type AppView =
   | 'transactions'
   | 'analytics'
   | 'goals'
+  | 'grow'
   | 'ai-coach'
   | 'settings';
 
@@ -72,4 +73,13 @@ export interface GoalData {
   monthlyContribution: number;
   aiCoachEnabled: boolean;
   category: string;
+}
+
+export type Role = 'coach' | 'user';
+
+export interface Message {
+  id: string;
+  role: Role;
+  text: string;
+  timestamp: Date;
 }

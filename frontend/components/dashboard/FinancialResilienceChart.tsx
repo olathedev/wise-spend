@@ -21,7 +21,7 @@ export default function FinancialResilienceChart() {
           </div>
         </div>
       </div>
-      <div className="h-64 flex items-end justify-between gap-4 px-2">
+      <div className="h-64 flex items-end justify-between gap-2 md:gap-4 px-2 overflow-x-auto scrollbar-hide">
         {months.map((month, index) => {
           const isCurrent = index === currentMonthIndex;
           return (
@@ -30,11 +30,10 @@ export default function FinancialResilienceChart() {
                 <div className="absolute -top-10 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded">Current: $2,400</div>
               )}
               <div
-                className={`w-full rounded-t-lg transition-all group-hover:bg-primary/20 ${
-                  isCurrent
+                className={`w-full rounded-t-lg transition-all group-hover:bg-primary/20 ${isCurrent
                     ? 'bg-primary shadow-lg shadow-teal-500/20'
                     : 'bg-slate-100 dark:bg-slate-800'
-                }`}
+                  }`}
                 style={{ height: `${heights[index]}px` }}
               ></div>
               <span className="text-[10px] mt-2 font-bold text-slate-400">{month}</span>
