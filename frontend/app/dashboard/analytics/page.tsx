@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
             <div className="space-y-6">
               {/* Food & Dining */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-white">
+                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Food & Dining</span>
                   <div className="flex gap-3">
                     <span className="text-slate-400">Last: $420</span>
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
               </div>
               {/* Entertainment */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-white">
+                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Entertainment</span>
                   <div className="flex gap-3">
                     <span className="text-slate-400">Last: $150</span>
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
               </div>
               {/* Transport */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-white">
+                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Transport</span>
                   <div className="flex gap-3">
                     <span className="text-slate-400">Last: $280</span>

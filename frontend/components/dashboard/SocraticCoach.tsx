@@ -1,3 +1,7 @@
+'use client';
+
+import Link from 'next/link';
+
 export default function SocraticCoach() {
   return (
     <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl shadow-xl p-6 lg:p-8 text-white relative flex flex-col justify-between overflow-hidden group">
@@ -9,10 +13,13 @@ export default function SocraticCoach() {
           I noticed a 15% spike in coffee spending this week. If redirected to your &lsquo;Home Downpayment&rsquo; fund, you&apos;d reach your goal 2 months earlier.
         </p>
       </div>
-      <button className="relative z-10 bg-white text-teal-600 font-bold py-3 px-6 rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
+      <Link 
+        href="/dashboard/ai-coach"
+        className="relative z-10 bg-white text-teal-600 font-bold py-3 px-6 rounded-xl hover:bg-teal-50 transition-colors flex items-center justify-center gap-2"
+      >
         Chat with Wise Coach
         <span className="material-icons-round text-sm">arrow_forward</span>
-      </button>
+      </Link>
       <div className="absolute bottom-4 right-4 opacity-20">
         <span className="material-icons-round text-8xl">psychology</span>
       </div>

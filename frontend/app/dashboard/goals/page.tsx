@@ -54,7 +54,7 @@ export default function GoalsPage() {
       <Header />
       
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-black mb-2">Financial Goals</h2>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Financial Goals</h2>
         <p className="text-slate-500 dark:text-slate-400">Track your progress and reach your milestones faster.</p>
       </div>
 
@@ -85,7 +85,7 @@ export default function GoalsPage() {
         />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-8 mb-8">
         <div className="flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {goals.map(goal => (
@@ -146,6 +146,9 @@ export default function GoalsPage() {
           </div>
         </div>
       </div>
+
+      {/* Bottom Spacer */}
+      <div className="h-8"></div>
 
       {/* FAB AI Coach */}
       <button 
