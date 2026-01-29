@@ -18,7 +18,7 @@ export const authMiddleware = (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedError('No token provided');
+      throw new UnauthorizedError('No tokeen provided');
     }
 
     const token = authHeader.substring(7); 

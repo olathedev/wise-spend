@@ -11,4 +11,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/signin",
   },
+  callbacks: {
+    async signIn({ profile, account }) {
+      console.log("Google Profile Response:", profile);
+      console.log("Google Account Response (ID Token):", account);
+      return true;
+    },
+  },
 });
