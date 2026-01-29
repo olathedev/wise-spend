@@ -5,7 +5,8 @@ import {
   TrendingUp, 
   Target, 
   Bot, 
-  Settings 
+  Settings,
+  Sprout
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
@@ -32,6 +33,12 @@ export const NAVIGATION_ITEMS = [
     label: 'Goals',
     icon: <Target size={20} />,
     href: '/dashboard/goals',
+  },
+  {
+    id: 'grow',
+    label: 'Grow',
+    icon: <Sprout size={20} />,
+    href: '/dashboard/grow',
   },
   {
     id: 'ai-coach',

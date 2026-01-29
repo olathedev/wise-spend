@@ -16,7 +16,7 @@ export default function LandingPage() {
         </p>
         <div className="flex gap-4 justify-center pt-4">
           <Link
-            href="/dashboard"
+            href="/auth/signin"
             className="bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20"
           >
             Go to Dashboard

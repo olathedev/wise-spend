@@ -16,6 +16,7 @@ const Sidebar: React.FC = () => {
     if (pathname.startsWith('/dashboard/transactions')) return 'transactions';
     if (pathname.startsWith('/dashboard/analytics')) return 'analytics';
     if (pathname.startsWith('/dashboard/goals')) return 'goals';
+    if (pathname.startsWith('/dashboard/grow')) return 'grow';
     if (pathname.startsWith('/dashboard/ai-coach')) return 'ai-coach';
     if (pathname.startsWith('/dashboard/settings')) return 'settings';
     return 'dashboard';

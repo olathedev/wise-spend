@@ -3,6 +3,7 @@ export type AppView =
   | 'transactions'
   | 'analytics'
   | 'goals'
+  | 'grow'
   | 'ai-coach'
   | 'settings';
 

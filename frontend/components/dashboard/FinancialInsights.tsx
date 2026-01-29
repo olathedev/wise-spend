@@ -58,7 +58,7 @@ export default function FinancialInsights() {
                     <h3 className="text-xl font-bold text-slate-900">Financial Insights</h3>
                     <p className="text-sm text-slate-500">AI-curated financial insights for you</p>
                 </div>
-                <Link href="/literacy" className="text-sm font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 transition-colors">
+                <Link href="/dashboard/grow" className="text-sm font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 transition-colors">
                     See all lessons <ArrowRight size={16} />
                 </Link>
             </div>
