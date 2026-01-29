@@ -5,14 +5,16 @@ import Header from '@/components/layout/Header';
 import GoalCard from '@/components/goals/GoalCard';
 import SummaryCard from '@/components/goals/SummaryCard';
 import AICoachModal from '@/components/goals/AICoachModal';
+import GoalSetupModal from '@/components/goals/GoalSetupModal';
 import { getFinancialAdvice } from '@/components/transactions/services/geminiService';
 import { INITIAL_GOALS, INITIAL_STATS } from '@/components/goals/constants';
-import { Goal, SummaryStats } from '@/components/types';
+import { Goal, SummaryStats, GoalData } from '@/components/types';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(INITIAL_GOALS);
   const [stats] = useState<SummaryStats>(INITIAL_STATS);
   const [aiCoachOpen, setAiCoachOpen] = useState(false);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [suggestion, setSuggestion] = useState<string>('I noticed you have $120 surplus in your \'Dining Out\' budget this month. If you reallocated this to your \'Emergency Fund\', you could reach your target 2 weeks earlier. Shall we adjust your contribution plan?');
   const [isAdviceLoading, setIsAdviceLoading] = useState(false);
 
@@ -31,6 +33,20 @@ export default function GoalsPage() {
   const handleApplySuggestion = () => {
     // Mock interaction
     alert('Suggestion applied! Your contribution plan has been updated.');
+  };
+
+  const handleCreateGoal = (goalData: GoalData) => {
+    // Convert GoalData to Goal format
+    const newGoal: Goal = {
+      id: Date.now().toString(),
+      name: goalData.name,
+      description: `Target: $${goalData.targetAmount.toLocaleString()}`,
+      currentAmount: 0,
+      targetAmount: goalData.targetAmount,
+      aiStatus: goalData.aiCoachEnabled ? 'ON TRACK' : 'MANUAL',
+    };
+    setGoals([...goals, newGoal]);
+    setIsGoalModalOpen(false);
   };
 
   return (
@@ -76,7 +92,10 @@ export default function GoalsPage() {
               <GoalCard key={goal.id} goal={goal} />
             ))}
             
-            <button className="bg-transparent p-6 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-4 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group min-h-[220px]">
+            <button 
+              onClick={() => setIsGoalModalOpen(true)}
+              className="bg-transparent p-6 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-4 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group min-h-[220px]"
+            >
               <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
                 <span className="material-icons-round text-2xl">add</span>
               </div>
@@ -141,6 +160,14 @@ export default function GoalsPage() {
       </button>
 
       <AICoachModal isOpen={aiCoachOpen} onClose={() => setAiCoachOpen(false)} />
+      
+      {/* Goal Setup Modal */}
+      {isGoalModalOpen && (
+        <GoalSetupModal 
+          onClose={() => setIsGoalModalOpen(false)} 
+          onCreate={handleCreateGoal}
+        />
+      )}
     </>
   );
 }

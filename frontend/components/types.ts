@@ -59,3 +59,17 @@ export interface SummaryStats {
   monthlyContribution: number;
   activeGoalsCount: number;
 }
+
+export enum Step {
+  CATEGORY = 1,
+  TARGET = 2,
+  TIMELINE = 3,
+}
+
+export interface GoalData {
+  name: string;
+  targetAmount: number;
+  monthlyContribution: number;
+  aiCoachEnabled: boolean;
+  category: string;
+}

@@ -57,3 +57,24 @@ export const getFinancialAdvice = async (goals: any[]): Promise<string | null> =
     return 'Great progress on your goals! Consider increasing your monthly contributions by 10% to accelerate your timeline. This could help you reach your Emergency Fund goal even sooner.';
   }
 };
+
+// Generate Socratic tip for goal setup
+export const getSocraticTip = async (goalData: any): Promise<string> => {
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  // Mock tip based on goal data
+  const monthsToGoal = goalData.targetAmount / goalData.monthlyContribution;
+  
+  if (goalData.aiCoachEnabled) {
+    if (monthsToGoal > 24) {
+      return 'I\'ll look for minor surpluses in your \'Dining\' and \'Leisure\' categories. Redirecting $200/month could shorten your timeline by 3 months.';
+    } else if (monthsToGoal > 12) {
+      return 'I\'ll analyze your spending patterns to find optimization opportunities. Small adjustments could accelerate your goal by 15-20%.';
+    } else {
+      return 'You\'re on a great track! I\'ll monitor your budget to ensure you stay on course and suggest any final optimizations.';
+    }
+  }
+  
+  return 'Enable AI Coach to get personalized optimization suggestions for this goal.';
+};
