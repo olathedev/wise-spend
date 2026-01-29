@@ -1,11 +1,11 @@
 export default function Header() {
   return (
-    <header className="flex justify-between items-center mb-10">
+    <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
       <div>
         <h2 className="text-2xl font-semibold text-slate-900">Welcome back, Daniel</h2>
         <p className="text-slate-500 dark:text-slate-400">Your financial vision is crystal clear today.</p>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center justify-between w-full md:w-auto gap-6">
         <button className="relative p-2 text-slate-400 hover:text-primary transition-colors">
           <span className="material-icons-round text-2xl">notifications</span>
           <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-[10px] text-white flex items-center justify-center rounded-full font-bold">3</span>
