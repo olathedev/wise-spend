@@ -5,8 +5,11 @@ import SnapReceiptButton from "../receipt/SnapReceiptButton";
 
 export default function FinancialSummaryCards() {
   return (
-    <div className="flex overflow-x-auto no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 -mx-4 px-4 md:mx-0 md:px-0 pb-4 md:pb-0">
-      <div className="flex-none w-[280px] md:w-auto">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="flex flex-col justify-center">
+        <SnapReceiptButton />
+      </div>
+      <div>
         <StatCard
           icon={<Shield size={24} className="text-teal-600" />}
           label="Emergency Fund"
@@ -15,7 +18,7 @@ export default function FinancialSummaryCards() {
           trendType="positive"
         />
       </div>
-      <div className="flex-none w-[280px] md:w-auto">
+      <div>
         <StatCard
           icon={<ShoppingBag size={24} className="text-blue-600" />}
           label="Monthly Spending"
@@ -24,7 +27,7 @@ export default function FinancialSummaryCards() {
           trendType="neutral"
         />
       </div>
-      <div className="flex-none w-[280px] md:w-auto">
+      <div>
         <StatCard
           icon={<Verified size={24} className="text-teal-600" />}
           label="Wise Score"
@@ -32,9 +35,6 @@ export default function FinancialSummaryCards() {
           trend="Top 5%"
           trendType="positive"
         />
-      </div>
-      <div className="flex-none w-[280px] md:w-auto flex flex-col justify-center">
-        <SnapReceiptButton />
       </div>
     </div>
   );

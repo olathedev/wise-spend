@@ -68,18 +68,15 @@ export default function AnalyticsPage() {
     <div className="flex flex-col min-h-full">
       <Header />
       <div className="flex-1">
-        {/* Summary Cards */}
         <AnalyticsSummaryCards />
-
-        {/* Heatmap Section */}
-        <div className="mb-8">
-          <div className="bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-            <div className="flex justify-between items-center mb-8">
+        <div className="mb-8 px-1">
+          <div className="bg-card-light dark:bg-card-dark p-4 sm:p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-black">
+                <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-black">
                   Spending Intensity Heatmap
                 </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                   Visualizing transaction density across the current month.
                 </p>
               </div>
@@ -88,11 +85,11 @@ export default function AnalyticsPage() {
                   <span className="text-[10px] text-slate-400 font-bold uppercase">
                     Low
                   </span>
-                  <div className="w-3 h-3 rounded-sm bg-teal-50 dark:bg-slate-800"></div>
-                  <div className="w-3 h-3 rounded-sm bg-teal-200"></div>
-                  <div className="w-3 h-3 rounded-sm bg-teal-400"></div>
-                  <div className="w-3 h-3 rounded-sm bg-teal-600"></div>
-                  <div className="w-3 h-3 rounded-sm bg-teal-800"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-50 dark:bg-slate-800"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-200"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-400"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-600"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-sm bg-teal-800"></div>
                   <span className="text-[10px] text-slate-400 font-bold uppercase">
                     High
                   </span>
@@ -127,42 +124,42 @@ export default function AnalyticsPage() {
 
         {/* Comparison Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
-            <div className="flex justify-between items-center mb-8">
+          <div className="lg:col-span-2 bg-card-light dark:bg-card-dark p-4 sm:p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-black">
+                <h4 className="text-base sm:text-lg font-bold text-slate-900 dark:text-black">
                   Current vs. Last Month Spending
                 </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                   Year-over-year growth and category comparison.
                 </p>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-primary"></span>
-                  <span className="text-xs font-medium text-slate-900 dark:text-primary">
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary"></span>
+                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-primary">
                     This Month
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-                  <span className="text-xs font-medium text-slate-900 dark:text-black">
+                  <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 dark:text-black">
                     Last Month
                   </span>
                 </div>
               </div>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* Food & Dining */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
+                <div className="flex justify-between text-[10px] sm:text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Food & Dining</span>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <span className="text-slate-400">Last: $420</span>
                     <span className="text-primary">Now: $385</span>
                   </div>
                 </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="w-full h-2.5 sm:h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
                   <div
                     className="h-full bg-primary"
                     style={{ width: "45%" }}
@@ -175,14 +172,14 @@ export default function AnalyticsPage() {
               </div>
               {/* Entertainment */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
+                <div className="flex justify-between text-[10px] sm:text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Entertainment</span>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <span className="text-slate-400">Last: $150</span>
                     <span className="text-primary">Now: $210</span>
                   </div>
                 </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="w-full h-2.5 sm:h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
                   <div
                     className="h-full bg-primary"
                     style={{ width: "65%" }}
@@ -195,14 +192,14 @@ export default function AnalyticsPage() {
               </div>
               {/* Transport */}
               <div>
-                <div className="flex justify-between text-xs font-bold mb-2 text-slate-900 dark:text-black">
+                <div className="flex justify-between text-[10px] sm:text-xs font-bold mb-2 text-slate-900 dark:text-black">
                   <span>Transport</span>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <span className="text-slate-400">Last: $280</span>
                     <span className="text-primary">Now: $265</span>
                   </div>
                 </div>
-                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="w-full h-2.5 sm:h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
                   <div
                     className="h-full bg-primary"
                     style={{ width: "40%" }}
@@ -216,7 +213,6 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Behavioral Hub Card */}
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-xl p-8 text-white relative flex flex-col justify-between overflow-hidden group">
             <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full -mr-20 -mt-20"></div>
             <div className="relative z-10">

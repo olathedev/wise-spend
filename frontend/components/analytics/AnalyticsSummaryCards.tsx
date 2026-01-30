@@ -29,28 +29,30 @@ const AnalyticsStatCard: React.FC<AnalyticsStatCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="slick-glass p-6 rounded-3xl transition-all hover:shadow-xl hover:shadow-teal-500/5 group relative overflow-hidden min-w-[280px] md:min-w-0"
+      className="slick-glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl transition-all hover:shadow-xl hover:shadow-teal-500/5 group relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-teal-500/5 to-transparent rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
 
-      <div className="flex items-center justify-between mb-4 relative z-10">
+      <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
         <div
-          className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center ${iconColor} shadow-sm group-hover:scale-110 transition-transform`}
+          className={`w-10 h-10 sm:w-12 h-12 rounded-xl sm:rounded-2xl ${iconBg} flex items-center justify-center ${iconColor} shadow-sm group-hover:scale-110 transition-transform`}
         >
-          <span className="material-icons-round text-xl">{icon}</span>
+          <span className="material-icons-round text-lg sm:text-xl">
+            {icon}
+          </span>
         </div>
         <span
-          className={`text-[10px] font-black uppercase tracking-wider ${badgeColor} ${badgeBg} px-3 py-1 rounded-lg`}
+          className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider ${badgeColor} ${badgeBg} px-2 sm:px-3 py-1 rounded-lg`}
         >
           {badge}
         </span>
       </div>
 
       <div className="relative z-10">
-        <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">
+        <p className="text-[8px] sm:text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">
           {label}
         </p>
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-black tracking-tight">
+        <h3 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-black tracking-tight">
           {value}
         </h3>
       </div>
@@ -60,8 +62,8 @@ const AnalyticsStatCard: React.FC<AnalyticsStatCardProps> = ({
 
 export default function AnalyticsSummaryCards() {
   return (
-    <div className="flex overflow-x-auto no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 -mx-4 px-4 md:mx-0 md:px-0 pb-4 md:pb-0">
-      <div className="flex-none w-[280px] md:w-auto">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+      <div>
         <AnalyticsStatCard
           icon="bolt"
           iconBg="bg-orange-100/50 dark:bg-orange-900/20"
@@ -73,7 +75,7 @@ export default function AnalyticsSummaryCards() {
           badgeBg="bg-red-50/50 dark:bg-red-900/10"
         />
       </div>
-      <div className="flex-none w-[280px] md:w-auto">
+      <div>
         <AnalyticsStatCard
           icon="trending_up"
           iconBg="bg-teal-100/50 dark:bg-teal-900/20"
@@ -85,7 +87,7 @@ export default function AnalyticsSummaryCards() {
           badgeBg="bg-teal-50/50 dark:bg-teal-900/10"
         />
       </div>
-      <div className="flex-none w-[280px] md:w-auto">
+      <div>
         <AnalyticsStatCard
           icon="auto_renew"
           iconBg="bg-blue-100/50 dark:bg-blue-900/20"
@@ -97,7 +99,7 @@ export default function AnalyticsSummaryCards() {
           badgeBg="bg-blue-50/50 dark:bg-blue-900/10"
         />
       </div>
-      <div className="flex-none w-[280px] md:w-auto flex flex-col justify-center">
+      <div className="flex flex-col justify-center">
         <SnapReceiptButton />
       </div>
     </div>

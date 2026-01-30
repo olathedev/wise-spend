@@ -25,7 +25,7 @@ const StatCard: React.FC<StatCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -5 }}
-      className="slick-glass p-5 rounded-3xl min-w-[240px] md:min-w-0 transition-all hover:shadow-xl hover:shadow-teal-500/5 group relative overflow-hidden"
+      className="slick-glass p-4 md:p-5 rounded-3xl min-w-0 transition-all hover:shadow-xl hover:shadow-teal-500/5 group relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-teal-500/5 to-transparent rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
 
@@ -46,7 +46,7 @@ const StatCard: React.FC<StatCardProps> = ({
         <p className="text-gray-400 dark:text-slate-500 text-[10px] font-black mb-1 uppercase tracking-widest leading-none">
           {label}
         </p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-black tracking-tight">
+        <p className="text-lg md:text-2xl font-bold text-gray-900 dark:text-black tracking-tight">
           {value}
         </p>
       </div>
