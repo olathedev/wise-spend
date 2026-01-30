@@ -1,49 +1,73 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Header from '@/components/layout/Header';
-import AnalyticsSummaryCards from '@/components/analytics/AnalyticsSummaryCards';
+import React from "react";
+import Header from "@/components/layout/Header";
+import AnalyticsSummaryCards from "@/components/analytics/AnalyticsSummaryCards";
 
 export default function AnalyticsPage() {
   // Heatmap data - intensity levels for each day (1-28)
   // Intensity: 0 = none, 1 = low, 2 = medium-low, 3 = medium, 4 = medium-high, 5 = high
   const heatmapData = [
-    1, 0, 3, 0, 4, 5, 2, // Days 1-7
-    0, 1, 0, 2, 4, 0, 0, // Days 8-14
-    0, 0, 1, 3, 5, 0, 0, // Days 15-21
-    0, 1, 2, 0, 0, 0, 0, // Days 22-28
+    1,
+    0,
+    3,
+    0,
+    4,
+    5,
+    2, // Days 1-7
+    0,
+    1,
+    0,
+    2,
+    4,
+    0,
+    0, // Days 8-14
+    0,
+    0,
+    1,
+    3,
+    5,
+    0,
+    0, // Days 15-21
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    0, // Days 22-28
   ];
 
   const getHeatmapColor = (intensity: number, day: number) => {
     if (day > 21) {
-      return 'bg-slate-50 dark:bg-slate-800/20 opacity-30';
+      return "bg-slate-50 dark:bg-slate-800/20 opacity-30";
     }
     if (day === 22) {
-      return 'border-2 border-primary border-dashed';
+      return "border-2 border-primary border-dashed";
     }
     const colors = [
-      'bg-teal-50 dark:bg-slate-800/50',
-      'bg-teal-100',
-      'bg-teal-200',
-      'bg-teal-400',
-      'bg-teal-600',
-      'bg-teal-800',
+      "bg-teal-50 dark:bg-slate-800/50",
+      "bg-teal-100",
+      "bg-teal-200",
+      "bg-teal-400",
+      "bg-teal-600",
+      "bg-teal-800",
     ];
     return colors[intensity] || colors[0];
   };
 
   const getHeatmapTextColor = (intensity: number, day: number) => {
-    if (day > 21) return 'text-slate-400';
-    if (day === 22) return 'text-primary';
-    if (intensity >= 4) return 'text-white/40';
-    if (intensity >= 2) return 'text-teal-900/40';
-    return 'text-slate-400/40';
+    if (day > 21) return "text-slate-400";
+    if (day === 22) return "text-primary";
+    if (intensity >= 4) return "text-white/40";
+    if (intensity >= 2) return "text-teal-900/40";
+    return "text-slate-400/40";
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col min-h-full">
       <Header />
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1">
         {/* Summary Cards */}
         <AnalyticsSummaryCards />
 
@@ -52,25 +76,36 @@ export default function AnalyticsPage() {
           <div className="bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-black">Spending Intensity Heatmap</h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Visualizing transaction density across the current month.</p>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-black">
+                  Spending Intensity Heatmap
+                </h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Visualizing transaction density across the current month.
+                </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">Low</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    Low
+                  </span>
                   <div className="w-3 h-3 rounded-sm bg-teal-50 dark:bg-slate-800"></div>
                   <div className="w-3 h-3 rounded-sm bg-teal-200"></div>
                   <div className="w-3 h-3 rounded-sm bg-teal-400"></div>
                   <div className="w-3 h-3 rounded-sm bg-teal-600"></div>
                   <div className="w-3 h-3 rounded-sm bg-teal-800"></div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">High</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">
+                    High
+                  </span>
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-7 gap-3">
               {/* Day headers */}
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-                <div key={day} className="text-center text-[10px] font-bold text-slate-400 uppercase">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-[10px] font-bold text-slate-400 uppercase"
+                >
                   {day}
                 </div>
               ))}
@@ -95,17 +130,25 @@ export default function AnalyticsPage() {
           <div className="lg:col-span-2 bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h4 className="text-lg font-bold text-slate-900 dark:text-black">Current vs. Last Month Spending</h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Year-over-year growth and category comparison.</p>
+                <h4 className="text-lg font-bold text-slate-900 dark:text-black">
+                  Current vs. Last Month Spending
+                </h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Year-over-year growth and category comparison.
+                </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-primary"></span>
-                  <span className="text-xs font-medium text-slate-900 dark:text-primary">This Month</span>
+                  <span className="text-xs font-medium text-slate-900 dark:text-primary">
+                    This Month
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-                  <span className="text-xs font-medium text-slate-900 dark:text-black">Last Month</span>
+                  <span className="text-xs font-medium text-slate-900 dark:text-black">
+                    Last Month
+                  </span>
                 </div>
               </div>
             </div>
@@ -120,8 +163,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-primary" style={{ width: '45%' }}></div>
-                  <div className="h-full bg-slate-200 dark:bg-slate-700" style={{ width: '50%' }}></div>
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: "45%" }}
+                  ></div>
+                  <div
+                    className="h-full bg-slate-200 dark:bg-slate-700"
+                    style={{ width: "50%" }}
+                  ></div>
                 </div>
               </div>
               {/* Entertainment */}
@@ -134,8 +183,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-primary" style={{ width: '65%' }}></div>
-                  <div className="h-full bg-slate-200 dark:bg-slate-700" style={{ width: '35%' }}></div>
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: "65%" }}
+                  ></div>
+                  <div
+                    className="h-full bg-slate-200 dark:bg-slate-700"
+                    style={{ width: "35%" }}
+                  ></div>
                 </div>
               </div>
               {/* Transport */}
@@ -148,8 +203,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-primary" style={{ width: '40%' }}></div>
-                  <div className="h-full bg-slate-200 dark:bg-slate-700" style={{ width: '42%' }}></div>
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: "40%" }}
+                  ></div>
+                  <div
+                    className="h-full bg-slate-200 dark:bg-slate-700"
+                    style={{ width: "42%" }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -166,7 +227,9 @@ export default function AnalyticsPage() {
                 Daniel, your impulse buying usually peaks on Fridays after 6 PM.
               </h4>
               <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                I&apos;ve detected a pattern: &ldquo;End-of-week reward&rdquo; spending. Try setting a 24-hour cooling-off period for any cart items above $50 this weekend.
+                I&apos;ve detected a pattern: &ldquo;End-of-week reward&rdquo;
+                spending. Try setting a 24-hour cooling-off period for any cart
+                items above $50 this weekend.
               </p>
             </div>
             <button className="relative z-10 bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-600 transition-colors flex items-center justify-center gap-2">
