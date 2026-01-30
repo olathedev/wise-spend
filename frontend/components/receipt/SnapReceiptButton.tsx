@@ -95,7 +95,7 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
         whileTap={{ scale: 0.98 }}
         onClick={handleClick}
         disabled={isProcessing}
-        className="w-full h-full min-h-[140px] flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-400 text-white shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all group overflow-hidden relative disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full h-full min-h-[120px] md:min-h-[140px] flex flex-col items-center justify-center gap-2 md:gap-3 p-4 md:p-6 rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-400 text-white shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all group overflow-hidden relative disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
@@ -113,7 +113,7 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
         </div>
 
         <div className="text-center relative z-10">
-          <p className="text-sm font-black uppercase tracking-widest leading-none mb-1">
+          <p className="text-xs md:text-sm font-black uppercase tracking-widest leading-none mb-1">
             {isProcessing ? "Processing..." : "Snap Receipt"}
           </p>
           <p className="text-[10px] text-white/80 font-medium tracking-wide">

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import FloatingActionButton from "@/components/layout/FloatingActionButton";
 import MobileHeader from "@/components/layout/MobileHeader";
+import AICoachModal from "@/components/goals/AICoachModal";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +13,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAiCoachOpen, setIsAiCoachOpen] = useState(false);
+  const pathname = usePathname();
+  const isGrowPage = pathname === "/dashboard/grow";
 
   return (
     <div className="flex bg-white flex-col md:flex-row h-screen overflow-hidden">
@@ -22,7 +27,15 @@ export default function DashboardLayout({
         {children}
       </main>
 
-      <FloatingActionButton />
+      <FloatingActionButton
+        onClick={() => setIsAiCoachOpen(true)}
+        className={isGrowPage ? "lg:hidden" : ""}
+      />
+
+      <AICoachModal
+        isOpen={isAiCoachOpen}
+        onClose={() => setIsAiCoachOpen(false)}
+      />
     </div>
   );
 }
