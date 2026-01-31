@@ -6,6 +6,9 @@ export interface IUserDocument extends Document {
   picture?: string;
   googleId: string;
   isActive: boolean;
+  monthlyIncome?: number;
+  financialGoals?: string[];
+  coachPersonality?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +40,9 @@ const UserSchema = new Schema<IUserDocument>(
       type: Boolean,
       default: true,
     },
+    monthlyIncome: { type: Number, required: false },
+    financialGoals: { type: [String], default: undefined, required: false },
+    coachPersonality: { type: String, required: false },
   },
   {
     timestamps: true,

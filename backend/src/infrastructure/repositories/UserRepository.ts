@@ -8,13 +8,17 @@ export class UserRepository implements IUserRepository {
   }
 
   private toDomain(document: IUserDocument): User {
-    return new User(
+    const user = new User(
       document.email,
       document.name,
       document.googleId,
       document.picture,
       document._id.toString()
     );
+    if (document.monthlyIncome != null) user.monthlyIncome = document.monthlyIncome;
+    if (document.financialGoals != null) user.financialGoals = document.financialGoals;
+    if (document.coachPersonality != null) user.coachPersonality = document.coachPersonality;
+    return user;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -34,6 +38,9 @@ export class UserRepository implements IUserRepository {
       googleId: entity.googleId,
       picture: entity.picture,
       isActive: entity.isActive,
+      monthlyIncome: entity.monthlyIncome,
+      financialGoals: entity.financialGoals,
+      coachPersonality: entity.coachPersonality,
     });
 
     const saved = await document.save();

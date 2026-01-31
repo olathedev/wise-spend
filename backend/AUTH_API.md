@@ -6,7 +6,7 @@ The authentication system uses Google Sign-In (via NextAuth on frontend) and gen
 ## Endpoints
 
 ### 1. Authenticate with Google
-**Endpoint:** `POST /api/auth/google`
+**Endpoint:** `POST /api/v1/auth/google`
 
 **Description:** Verifies Google ID token from NextAuth, creates/updates user in database, and returns JWT token.
 
@@ -45,7 +45,7 @@ The authentication system uses Google Sign-In (via NextAuth on frontend) and gen
 
 **cURL Example:**
 ```bash
-curl -X POST http://localhost:8000/api/auth/google \
+curl -X POST http://localhost:8000/api/v1/auth/google \
   -H "Content-Type: application/json" \
   -d '{
     "idToken": "your_google_id_token_here"
@@ -55,7 +55,7 @@ curl -X POST http://localhost:8000/api/auth/google \
 ---
 
 ### 2. Refresh Token
-**Endpoint:** `POST /api/auth/refresh`
+**Endpoint:** `POST /api/v1/auth/refresh`
 
 **Description:** Refreshes an existing JWT token.
 
@@ -78,7 +78,7 @@ curl -X POST http://localhost:8000/api/auth/google \
 
 **cURL Example:**
 ```bash
-curl -X POST http://localhost:8000/api/auth/refresh \
+curl -X POST http://localhost:8000/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{
     "token": "your_jwt_token_here"
@@ -89,7 +89,7 @@ curl -X POST http://localhost:8000/api/auth/refresh \
 
 ## Using JWT Token
 
-After receiving the JWT token from `/api/auth/google`, include it in subsequent API requests:
+After receiving the JWT token from `/api/v1/auth/google`, include it in subsequent API requests:
 
 **Header:**
 ```
@@ -98,7 +98,7 @@ Authorization: Bearer <your_jwt_token>
 
 **Example:**
 ```bash
-curl -X GET http://localhost:8000/api/protected-route \
+curl -X GET http://localhost:8000/api/v1/protected-route \
   -H "Authorization: Bearer your_jwt_token_here"
 ```
 
@@ -121,9 +121,56 @@ MONGODB_URI=your_mongodb_connection_string
 
 1. User signs in with Google via NextAuth on frontend
 2. Frontend gets Google ID token from NextAuth session
-3. Frontend sends POST to `/api/auth/google` with the ID token
+3. Frontend sends POST to `/api/v1/auth/google` with the ID token
 4. Backend verifies token, creates/updates user, returns JWT
 5. Frontend stores JWT and uses it in `Authorization: Bearer <token>` header for all API calls
+
+---
+
+### 3. Complete Onboarding (protected)
+
+**Endpoint:** `PUT /api/v1/auth/onboarding`
+
+**Description:** Updates the authenticated user's profile with onboarding data (monthly income, financial goals, coach personality). Requires JWT in `Authorization: Bearer <token>`.
+
+**Request Body:**
+```json
+{
+  "monthlyIncome": "3500",
+  "financialGoals": ["emergency", "debt", "invest"],
+  "coachPersonality": "cheerleader"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "user_id",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "picture": "https://...",
+      "monthlyIncome": 3500,
+      "financialGoals": ["emergency", "debt", "invest"],
+      "coachPersonality": "cheerleader"
+    }
+  }
+}
+```
+
+**cURL Example:**
+```bash
+curl -X PUT http://localhost:8000/api/v1/auth/onboarding \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_jwt_token_here" \
+  -d '{
+    "monthlyIncome": "3500",
+    "financialGoals": ["emergency", "debt"],
+    "coachPersonality": "analyst"
+  }'
+```
 
 ---
 

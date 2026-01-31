@@ -6,6 +6,12 @@ export class User extends BaseEntity {
   public picture?: string;
   public googleId: string;
   public isActive: boolean;
+  /** Onboarding: approximate monthly net income */
+  public monthlyIncome?: number;
+  /** Onboarding: selected goal ids (e.g. emergency, debt, home) */
+  public financialGoals?: string[];
+  /** Onboarding: coach persona id (e.g. drill_sergeant, cheerleader, analyst) */
+  public coachPersonality?: string;
 
   constructor(
     email: string,

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Target, Sparkles, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import AuthCallbackHandler from '@/components/auth/AuthCallbackHandler';
+import { completeOnboarding } from '@/services/authService';
 
 type FormData = {
     monthlyIncome: string;
@@ -36,6 +36,8 @@ const COACH_PERSONAS = [
 export default function OnboardingPage() {
     const router = useRouter();
     const [step, setStep] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [formData, setFormData] = useState<{
         monthlyIncome: string;
         financialGoals: string[];
@@ -46,13 +48,25 @@ export default function OnboardingPage() {
         coachPersonality: '',
     });
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (step < 3) {
             setStep(step + 1);
+            setSubmitError(null);
         } else {
-            // Complete Onboarding
-            console.log('Onboarding Complete:', formData);
-            router.push('/dashboard');
+            setIsSubmitting(true);
+            setSubmitError(null);
+            try {
+                await completeOnboarding({
+                    monthlyIncome: formData.monthlyIncome,
+                    financialGoals: formData.financialGoals,
+                    coachPersonality: formData.coachPersonality,
+                });
+                router.push('/dashboard');
+            } catch (err) {
+                setSubmitError(err instanceof Error ? err.message : 'Failed to save. Please try again.');
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -81,9 +95,6 @@ export default function OnboardingPage() {
 
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-            {/* Handle backend API call after NextAuth sign-in */}
-            <AuthCallbackHandler />
-
             <div className="w-full max-w-lg bg-white p-4 sm:p-12 relative overflow-hidden">
                 <AnimatePresence mode="wait">
 
@@ -203,17 +214,22 @@ export default function OnboardingPage() {
                         ))}
                     </div>
 
-                    <button
-                        onClick={handleNext}
-                        disabled={!isStepValid()}
-                        className={`flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-white transition-all ${isStepValid()
-                            ? 'bg-teal-500 hover:bg-teal-600 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
-                            : 'bg-gray-300 cursor-not-allowed'
-                            }`}
-                    >
-                        {step === 3 ? 'Start Journey' : 'Continue'}
-                        <ArrowRight size={20} />
-                    </button>
+                    <div className="flex flex-col items-end gap-2">
+                        {submitError && (
+                            <p className="text-sm text-red-600">{submitError}</p>
+                        )}
+                        <button
+                            onClick={handleNext}
+                            disabled={!isStepValid() || isSubmitting}
+                            className={`flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-white transition-all ${isStepValid() && !isSubmitting
+                                ? 'bg-teal-500 hover:bg-teal-600 shadow-lg hover:shadow-xl transform hover:-translate-y-1'
+                                : 'bg-gray-300 cursor-not-allowed'
+                                }`}
+                        >
+                            {isSubmitting ? 'Saving…' : step === 3 ? 'Start Journey' : 'Continue'}
+                            {!isSubmitting && <ArrowRight size={20} />}
+                        </button>
+                    </div>
                 </div>
 
             </div>

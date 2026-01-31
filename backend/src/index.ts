@@ -36,8 +36,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api', routes);
+// Routes (mount at /api/v1 to match frontend baseURL)
+app.use('/api/v1', routes);
 
 // Health check
 app.get('/health', async (_req, res) => {
