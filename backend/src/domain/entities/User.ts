@@ -1,4 +1,4 @@
-import { BaseEntity } from './BaseEntity';
+import { BaseEntity } from "./BaseEntity";
 
 export class User extends BaseEntity {
   public email: string;
@@ -6,13 +6,15 @@ export class User extends BaseEntity {
   public picture?: string;
   public googleId: string;
   public isActive: boolean;
+  public onboardingCompleted: boolean;
+  public onboardingData?: any;
 
   constructor(
     email: string,
     name: string,
     googleId: string,
     picture?: string,
-    id?: string
+    id?: string,
   ) {
     super(id);
     this.email = email;
@@ -20,5 +22,6 @@ export class User extends BaseEntity {
     this.googleId = googleId;
     this.picture = picture;
     this.isActive = true;
+    this.onboardingCompleted = false;
   }
 }

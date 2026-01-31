@@ -3,12 +3,21 @@
 import React from "react";
 import Image from "next/image";
 import { Menu, Bell } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface MobileHeaderProps {
   onOpenSidebar: () => void;
 }
 
 const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar }) => {
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "User";
+  const userImage =
+    session?.user?.image ||
+    "https://ui-avatars.com/api/?name=" +
+      encodeURIComponent(userName) +
+      "&background=random";
+
   return (
     <div className="md:hidden flex items-center justify-between p-4 slick-glass sticky top-0 z-40 border-b border-gray-100/50">
       <div className="flex items-center gap-2">
@@ -34,9 +43,9 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenSidebar }) => {
 
         <div className="w-8 h-8 rounded-full border-2 border-teal-500/20 overflow-hidden shadow-sm">
           <img
-            alt="User avatar"
+            alt={userName}
             className="w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5l09NzMqhL2raDQElTcQLGvb3-JPyUfS7cufyfvmqFBOsw6BhZrGWoWnfwhv95H5Uf0bwusqGxG3448_WMidHXBeXn0k4q3qaerTk7IDT-V279QMo5RDAupedrNa8ALuStVB20Vy9Zl_T2c8P7n1AXQVoCcGqoln4j7YJ1Tlf7pbHawH8iUdDRbuF95qkM8P3zZgMdXCjW23xcQN_djjKVpPq7tOyzWPB84Sq5U3E0JFVkKhnGNJYjE6UYA6QZaXPZ2yJpeLERHg"
+            src={userImage}
           />
         </div>
 

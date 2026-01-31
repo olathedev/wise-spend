@@ -1,20 +1,19 @@
-import { IUserRepository } from '@domain/repositories/IUserRepository';
-import { User } from '@domain/entities/User';
-import { UserModel, IUserDocument } from '@infrastructure/models/UserModel';
+import { IUserRepository } from "@domain/repositories/IUserRepository";
+import { User } from "@domain/entities/User";
+import { UserModel, IUserDocument } from "@infrastructure/models/UserModel";
 
 export class UserRepository implements IUserRepository {
-  private getEntityName(): string {
-    return 'User';
-  }
-
   private toDomain(document: IUserDocument): User {
-    return new User(
+    const user = new User(
       document.email,
       document.name,
       document.googleId,
       document.picture,
-      document._id.toString()
+      document._id.toString(),
     );
+    user.onboardingCompleted = document.onboardingCompleted;
+    user.onboardingData = document.onboardingData;
+    return user;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -34,6 +33,8 @@ export class UserRepository implements IUserRepository {
       googleId: entity.googleId,
       picture: entity.picture,
       isActive: entity.isActive,
+      onboardingCompleted: entity.onboardingCompleted,
+      onboardingData: entity.onboardingData,
     });
 
     const saved = await document.save();
@@ -47,7 +48,7 @@ export class UserRepository implements IUserRepository {
         ...entity,
         updatedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     );
 
     return document ? this.toDomain(document) : null;
