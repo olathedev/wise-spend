@@ -1,13 +1,13 @@
-import 'dotenv/config';
-import 'tsconfig-paths/register';
-import express, { Express } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { errorHandler } from '@presentation/middleware/errorHandler';
-import { routes } from '@presentation/routes';
-import { initializeAIService } from '@infrastructure/services';
-import { initializeDatabase } from '@infrastructure/database';
-import { Logger } from '@shared/utils/logger';
+import "dotenv/config";
+import "tsconfig-paths/register";
+import express, { Express } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { errorHandler } from "@presentation/middleware/errorHandler";
+import { routes } from "@presentation/routes";
+import { initializeAIService } from "@infrastructure/services";
+import { initializeDatabase } from "@infrastructure/database";
+import { Logger } from "@shared/utils/logger";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -15,18 +15,18 @@ const PORT = process.env.PORT || 3000;
 const initializeServices = async () => {
   try {
     await initializeDatabase();
-    Logger.info('Database initialized successfully');
+    Logger.info("Database initialized successfully");
   } catch (error) {
-    Logger.error('Database initialization failed:', error);
-    Logger.error('Server will continue without database connection');
+    Logger.error("Database initialization failed:", error);
+    Logger.error("Server will continue without database connection");
   }
 
   try {
     initializeAIService();
-    Logger.info('AI service initialized successfully');
+    Logger.info("AI service initialized successfully");
   } catch (error) {
-    Logger.warn('AI service initialization failed', error);
-    Logger.warn('Agentic features will not be available');
+    Logger.warn("AI service initialization failed", error);
+    Logger.warn("Agentic features will not be available");
   }
 };
 
@@ -37,22 +37,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api', routes);
+app.use("/api/v1", routes);
 
 // Health check
-app.get('/health', async (_req, res) => {
-  const { getDatabase } = await import('@infrastructure/database');
-  
-  let dbStatus = 'disconnected';
+app.get("/health", async (_req, res) => {
+  const { getDatabase } = await import("@infrastructure/database");
+
+  let dbStatus = "disconnected";
   try {
     const db = getDatabase();
-    dbStatus = db.getConnectionStatus() ? 'connected' : 'disconnected';
+    dbStatus = db.getConnectionStatus() ? "connected" : "disconnected";
   } catch (error) {
-    dbStatus = 'not initialized';
+    dbStatus = "not initialized";
   }
 
   res.status(200).json({
-    status: 'ok',
+    status: "ok",
     timestamp: new Date().toISOString(),
     database: dbStatus,
   });
@@ -67,12 +67,12 @@ const startServer = async () => {
 
   app.listen(PORT, () => {
     Logger.info(`🚀 Server is running on port ${PORT}`);
-    Logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    Logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
   });
 };
 
 startServer().catch((error) => {
-  Logger.error('Failed to start server:', error);
+  Logger.error("Failed to start server:", error);
   process.exit(1);
 });
 

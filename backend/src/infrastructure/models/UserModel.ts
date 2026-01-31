@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUserDocument extends Document {
   email: string;
@@ -6,6 +6,8 @@ export interface IUserDocument extends Document {
   picture?: string;
   googleId: string;
   isActive: boolean;
+  onboardingCompleted: boolean;
+  onboardingData?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,10 +39,18 @@ const UserSchema = new Schema<IUserDocument>(
       type: Boolean,
       default: true,
     },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    onboardingData: {
+      type: Schema.Types.Mixed,
+      required: false,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const UserModel = mongoose.model<IUserDocument>('User', UserSchema);
+export const UserModel = mongoose.model<IUserDocument>("User", UserSchema);
