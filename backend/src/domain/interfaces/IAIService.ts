@@ -19,7 +19,17 @@ export interface ChatResponse {
   };
 }
 
+export interface AnalyzeWithImageRequest {
+  imageBase64: string;
+  mimeType: string;
+  prompt: string;
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+}
+
 export interface IAIService {
   chat(request: ChatRequest): Promise<ChatResponse>;
   generateText(prompt: string, options?: Partial<ChatRequest>): Promise<string>;
+  analyzeWithImage(request: AnalyzeWithImageRequest): Promise<ChatResponse>;
 }

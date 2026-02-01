@@ -13,13 +13,8 @@ const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
 const initializeServices = async () => {
-  try {
-    await initializeDatabase();
-    Logger.info("Database initialized successfully");
-  } catch (error) {
-    Logger.error("Database initialization failed:", error);
-    Logger.error("Server will continue without database connection");
-  }
+  await initializeDatabase();
+  Logger.info("Database initialized successfully");
 
   try {
     initializeAIService();

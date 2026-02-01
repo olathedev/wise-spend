@@ -1,5 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
-import { IAIService, ChatRequest, ChatResponse, ChatMessage } from '@domain/interfaces/IAIService';
+import {
+  IAIService,
+  ChatRequest,
+  ChatResponse,
+  ChatMessage,
+  AnalyzeWithImageRequest,
+} from '@domain/interfaces/IAIService';
 import { Logger } from '@shared/utils/logger';
 
 export class GoogleGenAIService implements IAIService {
@@ -55,6 +61,48 @@ export class GoogleGenAIService implements IAIService {
 
     const response = await this.chat(request);
     return response.content;
+  }
+
+  async analyzeWithImage(request: AnalyzeWithImageRequest): Promise<ChatResponse> {
+    try {
+      const model = request.model || this.defaultModel;
+      const contents = [
+        {
+          role: 'user' as const,
+          parts: [
+            {
+              inlineData: {
+                data: request.imageBase64,
+                mimeType: request.mimeType,
+              },
+            },
+            { text: request.prompt },
+          ],
+        },
+      ];
+
+      const response = await this.genAI.models.generateContent({
+        model,
+        contents,
+        config: {
+          temperature: request.temperature ?? 0.4,
+          maxOutputTokens: request.maxTokens ?? 4096,
+        },
+      });
+
+      const text = response.text || '';
+      return {
+        content: text,
+        usage: {
+          totalTokens: response.usageMetadata?.totalTokenCount,
+          promptTokens: response.usageMetadata?.promptTokenCount,
+          completionTokens: response.usageMetadata?.candidatesTokenCount,
+        },
+      };
+    } catch (error) {
+      Logger.error('Google GenAI analyzeWithImage failed', error);
+      throw error;
+    }
   }
 
   private formatMessagesToContent(messages: ChatMessage[]): string | Array<{ role: string; parts: Array<{ text: string }> }> {
