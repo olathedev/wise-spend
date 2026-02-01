@@ -14,7 +14,12 @@ export interface AuthenticateWithGoogleResponse {
     id: string;
     email: string;
     name: string;
-    picture?: string;
+    picture?: string | null;
+    googleId: string;
+    onboardingCompleted: boolean;
+    monthlyIncome: number | null;
+    financialGoals: string[] | null;
+    coachPersonality: string | null;
   };
   token: string;
   onboardingCompleted: boolean;
@@ -67,7 +72,12 @@ export class AuthenticateWithGoogleUseCase implements IUseCase<
         id: savedUser.id!,
         email: savedUser.email,
         name: savedUser.name,
-        picture: savedUser.picture,
+        picture: savedUser.picture ?? null,
+        googleId: savedUser.googleId,
+        onboardingCompleted: savedUser.onboardingCompleted,
+        monthlyIncome: savedUser.monthlyIncome ?? null,
+        financialGoals: savedUser.financialGoals ?? null,
+        coachPersonality: savedUser.coachPersonality ?? null,
       },
       token,
       onboardingCompleted: savedUser.onboardingCompleted,

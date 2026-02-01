@@ -7,6 +7,7 @@ import {
   SignInWithGoogleResponse,
 } from "@/services/authService";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 interface UseSignInWithGoogleOptions {
   onSuccessRedirect?: string;
@@ -15,18 +16,14 @@ interface UseSignInWithGoogleOptions {
 
 export const useSignInWithGoogle = (options?: UseSignInWithGoogleOptions) => {
   const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
   const { onSuccessRedirect = "/dashboard", skipRedirect = false } =
     options || {};
 
   return useMutation<SignInWithGoogleResponse, Error, SignInWithGoogleRequest>({
     mutationFn: signInWithGoogle,
     onSuccess: (data) => {
-      // Store token in localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("auth_token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
+      setAuth(data.user, data.token);
       // Redirect only if not skipped (e.g., onboarding page handles its own flow)
       if (!skipRedirect) {
         if (data.onboardingCompleted) {

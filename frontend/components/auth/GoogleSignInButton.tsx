@@ -16,7 +16,7 @@ export default function GoogleSignInButton() {
       // This will redirect to Google OAuth, then back to callbackUrl
       await signIn('google', {
         redirect: true,
-        callbackUrl: '/onboarding',
+        callbackUrl: '/auth/callback',
       });
     } catch (error) {
       console.error('Sign in error:', error);

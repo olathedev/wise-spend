@@ -9,7 +9,12 @@ export interface SignInWithGoogleResponse {
     id: string;
     email: string;
     name: string;
-    picture?: string;
+    picture?: string | null;
+    googleId: string;
+    onboardingCompleted: boolean;
+    monthlyIncome: number | null;
+    financialGoals: string[] | null;
+    coachPersonality: string | null;
   };
   token: string;
   onboardingCompleted: boolean;

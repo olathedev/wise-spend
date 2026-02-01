@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, Target, Sparkles, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { completeOnboarding } from "@/services/authService";
+import { useAuthStore } from "@/store/authStore";
 
 type FormData = {
   monthlyIncome: string;
@@ -53,6 +54,7 @@ const COACH_PERSONAS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user: currentUser, setUser } = useAuthStore();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -74,11 +76,21 @@ export default function OnboardingPage() {
       setIsSubmitting(true);
       setSubmitError(null);
       try {
-        await completeOnboarding({
+        const data = await completeOnboarding({
           monthlyIncome: formData.monthlyIncome,
           financialGoals: formData.financialGoals,
           coachPersonality: formData.coachPersonality,
         });
+        if (currentUser) {
+          setUser({
+            ...currentUser,
+            ...data.user,
+            onboardingCompleted: true,
+            monthlyIncome: data.user.monthlyIncome ?? null,
+            financialGoals: data.user.financialGoals ?? null,
+            coachPersonality: data.user.coachPersonality ?? null,
+          });
+        }
         router.push("/dashboard");
       } catch (err) {
         setSubmitError(
