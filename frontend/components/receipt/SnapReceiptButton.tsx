@@ -121,9 +121,6 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
           </p>
         </div>
       </motion.button>
-
-      {/* Hidden file input */}
-      {/* capture="environment" enables camera on mobile, file picker on desktop */}
       <input
         ref={fileInputRef}
         type="file"

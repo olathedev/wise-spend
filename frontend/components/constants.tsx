@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   LayoutDashboard,
   Receipt,
@@ -6,45 +6,44 @@ import {
   Target,
   Bot,
   Settings,
-  Sprout
-} from 'lucide-react';
+  Sprout,
+} from "lucide-react";
 
 export const NAVIGATION_ITEMS = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: "dashboard",
+    label: "Dashboard",
     icon: <LayoutDashboard size={20} />,
-    href: '/dashboard',
+    href: "/dashboard",
   },
   {
-    id: 'grow',
-    label: 'Grow',
+    id: "grow",
+    label: "Grow",
     icon: <Sprout size={20} />,
-    href: '/dashboard/grow',
+    href: "/dashboard/grow",
   },
   {
-    id: 'transactions',
-    label: 'Transactions',
+    id: "transactions",
+    label: "Transactions",
     icon: <Receipt size={20} />,
-    href: '/dashboard/transactions',
+    href: "/dashboard/transactions",
   },
   {
-    id: 'analytics',
-    label: 'Analytics',
+    id: "analytics",
+    label: "Analytics",
     icon: <TrendingUp size={20} />,
-    href: '/dashboard/analytics',
+    href: "/dashboard/analytics",
   },
   {
-    id: 'goals',
-    label: 'Goals',
+    id: "goals",
+    label: "Goals",
     icon: <Target size={20} />,
-    href: '/dashboard/goals',
+    href: "/dashboard/goals",
   },
   {
-    id: 'ai-coach',
-    label: 'AI Coach',
+    id: "ai-coach",
+    label: "AI Coach",
     icon: <Bot size={20} />,
-    href: '/dashboard/ai-coach',
+    href: "/dashboard/ai-coach",
   },
- 
 ];
