@@ -1,4 +1,4 @@
-import apiClient from './axios';
+import apiClient from "./axios";
 
 export interface SignInWithGoogleRequest {
   idToken: string;
@@ -12,6 +12,7 @@ export interface SignInWithGoogleResponse {
     picture?: string;
   };
   token: string;
+  onboardingCompleted: boolean;
 }
 
 export interface ApiResponse<T> {
@@ -23,17 +24,19 @@ export interface ApiResponse<T> {
 }
 
 export const signInWithGoogle = async (
-  request: SignInWithGoogleRequest
+  request: SignInWithGoogleRequest,
 ): Promise<SignInWithGoogleResponse> => {
   const response = await apiClient.post<ApiResponse<SignInWithGoogleResponse>>(
-    '/auth/google',
+    "/auth/google",
     {
       idToken: request.idToken,
-    }
+    },
   );
 
   if (!response.data.success || !response.data.data) {
-    throw new Error(response.data.error?.message || 'Failed to sign in with Google');
+    throw new Error(
+      response.data.error?.message || "Failed to sign in with Google",
+    );
   }
 
   return response.data.data;
@@ -58,19 +61,21 @@ export interface CompleteOnboardingResponse {
 }
 
 export const completeOnboarding = async (
-  request: CompleteOnboardingRequest
+  request: CompleteOnboardingRequest,
 ): Promise<CompleteOnboardingResponse> => {
   const response = await apiClient.put<ApiResponse<CompleteOnboardingResponse>>(
-    '/auth/onboarding',
+    "/auth/onboarding",
     {
       monthlyIncome: request.monthlyIncome,
       financialGoals: request.financialGoals,
       coachPersonality: request.coachPersonality,
-    }
+    },
   );
 
   if (!response.data.success || !response.data.data) {
-    throw new Error(response.data.error?.message || 'Failed to complete onboarding');
+    throw new Error(
+      response.data.error?.message || "Failed to complete onboarding",
+    );
   }
 
   return response.data.data;

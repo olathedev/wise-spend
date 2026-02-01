@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import { useMutation } from '@tanstack/react-query';
-import { signInWithGoogle, SignInWithGoogleRequest, SignInWithGoogleResponse } from '@/services/authService';
-import { useRouter } from 'next/navigation';
+import { useMutation } from "@tanstack/react-query";
+import {
+  signInWithGoogle,
+  SignInWithGoogleRequest,
+  SignInWithGoogleResponse,
+} from "@/services/authService";
+import { useRouter } from "next/navigation";
 
 interface UseSignInWithGoogleOptions {
   onSuccessRedirect?: string;
@@ -11,24 +15,29 @@ interface UseSignInWithGoogleOptions {
 
 export const useSignInWithGoogle = (options?: UseSignInWithGoogleOptions) => {
   const router = useRouter();
-  const { onSuccessRedirect = '/dashboard', skipRedirect = false } = options || {};
+  const { onSuccessRedirect = "/dashboard", skipRedirect = false } =
+    options || {};
 
   return useMutation<SignInWithGoogleResponse, Error, SignInWithGoogleRequest>({
     mutationFn: signInWithGoogle,
     onSuccess: (data) => {
       // Store token in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("auth_token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
-      
+
       // Redirect only if not skipped (e.g., onboarding page handles its own flow)
       if (!skipRedirect) {
-        router.push(onSuccessRedirect);
+        if (data.onboardingCompleted) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
       }
     },
     onError: (error) => {
-      console.error('Sign in error:', error);
+      console.error("Sign in error:", error);
       // You can add toast notification here if needed
     },
   });

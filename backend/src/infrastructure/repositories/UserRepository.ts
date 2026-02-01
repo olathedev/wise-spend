@@ -1,20 +1,17 @@
-import { IUserRepository } from '@domain/repositories/IUserRepository';
-import { User } from '@domain/entities/User';
-import { UserModel, IUserDocument } from '@infrastructure/models/UserModel';
+import { IUserRepository } from "@domain/repositories/IUserRepository";
+import { User } from "@domain/entities/User";
+import { UserModel, IUserDocument } from "@infrastructure/models/UserModel";
 
 export class UserRepository implements IUserRepository {
-  private getEntityName(): string {
-    return 'User';
-  }
-
   private toDomain(document: IUserDocument): User {
     const user = new User(
       document.email,
       document.name,
       document.googleId,
       document.picture,
-      document._id.toString()
+      document._id.toString(),
     );
+    user.onboardingCompleted = document.onboardingCompleted ?? false;
     if (document.monthlyIncome != null) user.monthlyIncome = document.monthlyIncome;
     if (document.financialGoals != null) user.financialGoals = document.financialGoals;
     if (document.coachPersonality != null) user.coachPersonality = document.coachPersonality;
@@ -38,6 +35,7 @@ export class UserRepository implements IUserRepository {
       googleId: entity.googleId,
       picture: entity.picture,
       isActive: entity.isActive,
+      onboardingCompleted: entity.onboardingCompleted,
       monthlyIncome: entity.monthlyIncome,
       financialGoals: entity.financialGoals,
       coachPersonality: entity.coachPersonality,
@@ -54,7 +52,7 @@ export class UserRepository implements IUserRepository {
         ...entity,
         updatedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     );
 
     return document ? this.toDomain(document) : null;

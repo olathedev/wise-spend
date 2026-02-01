@@ -43,6 +43,7 @@ export class CompleteOnboardingUseCase
       monthlyIncome: request.monthlyIncome,
       financialGoals: request.financialGoals,
       coachPersonality: request.coachPersonality,
+      onboardingCompleted: true,
     });
 
     if (!updated) {

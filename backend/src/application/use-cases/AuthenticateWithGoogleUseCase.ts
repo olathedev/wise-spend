@@ -1,9 +1,9 @@
-import { IUseCase } from '@application/interfaces/IUseCase';
-import { IUserRepository } from '@domain/repositories/IUserRepository';
-import { User } from '@domain/entities/User';
-import { GoogleAuthService } from '@infrastructure/services/GoogleAuthService';
-import { JWTService } from '@infrastructure/services/JWTService';
-import { UserRepository } from '@infrastructure/repositories/UserRepository';
+import { IUseCase } from "@application/interfaces/IUseCase";
+import { IUserRepository } from "@domain/repositories/IUserRepository";
+import { User } from "@domain/entities/User";
+import { GoogleAuthService } from "@infrastructure/services/GoogleAuthService";
+import { JWTService } from "@infrastructure/services/JWTService";
+import { UserRepository } from "@infrastructure/repositories/UserRepository";
 
 export interface AuthenticateWithGoogleRequest {
   idToken: string;
@@ -17,11 +17,13 @@ export interface AuthenticateWithGoogleResponse {
     picture?: string;
   };
   token: string;
+  onboardingCompleted: boolean;
 }
 
-export class AuthenticateWithGoogleUseCase
-  implements IUseCase<AuthenticateWithGoogleRequest, AuthenticateWithGoogleResponse>
-{
+export class AuthenticateWithGoogleUseCase implements IUseCase<
+  AuthenticateWithGoogleRequest,
+  AuthenticateWithGoogleResponse
+> {
   private userRepository: IUserRepository;
   private googleAuthService: GoogleAuthService;
   private jwtService: JWTService;
@@ -29,7 +31,7 @@ export class AuthenticateWithGoogleUseCase
   constructor(
     userRepository?: IUserRepository,
     googleAuthService?: GoogleAuthService,
-    jwtService?: JWTService
+    jwtService?: JWTService,
   ) {
     this.userRepository = userRepository || new UserRepository();
     this.googleAuthService = googleAuthService || new GoogleAuthService();
@@ -37,17 +39,19 @@ export class AuthenticateWithGoogleUseCase
   }
 
   async execute(
-    request: AuthenticateWithGoogleRequest
+    request: AuthenticateWithGoogleRequest,
   ): Promise<AuthenticateWithGoogleResponse> {
     // Verify Google token
-    const googlePayload = await this.googleAuthService.verifyToken(request.idToken);
+    const googlePayload = await this.googleAuthService.verifyToken(
+      request.idToken,
+    );
 
     // Create or update user
     const user = new User(
       googlePayload.email,
       googlePayload.name,
       googlePayload.sub,
-      googlePayload.picture
+      googlePayload.picture,
     );
 
     const savedUser = await this.userRepository.createOrUpdate(user);
@@ -66,6 +70,7 @@ export class AuthenticateWithGoogleUseCase
         picture: savedUser.picture,
       },
       token,
+      onboardingCompleted: savedUser.onboardingCompleted,
     };
   }
 }
