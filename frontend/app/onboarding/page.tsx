@@ -6,6 +6,7 @@ import { ArrowRight, Check, Target, Sparkles, TrendingUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { completeOnboarding } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
+import { GOALS_LIST } from "@/components/goals/constants";
 
 type FormData = {
   monthlyIncome: string;
@@ -13,20 +14,7 @@ type FormData = {
   coachPersonality: string;
 };
 
-const GOALS = [
-  { id: "emergency", label: "Emergency Fund" },
-  { id: "debt", label: "Pay off Debt" },
-  { id: "home", label: "Save for Home" },
-  { id: "wealth", label: "Build Wealth" },
-  { id: "travel", label: "Travel & Fun" },
-  { id: "invest", label: "Start Investing" },
-  { id: "car", label: "Buy a Car" },
-  { id: "retirement", label: "Retire Early" },
-  { id: "business", label: "Start Business" },
-  { id: "education", label: "Education" },
-  { id: "wedding", label: "Wedding" },
-  { id: "charity", label: "Charity/Giving" },
-];
+const GOALS = GOALS_LIST.map((g) => ({ id: g.id, label: g.label }));
 
 const COACH_PERSONAS = [
   {
