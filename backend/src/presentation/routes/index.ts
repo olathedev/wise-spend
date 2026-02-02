@@ -3,12 +3,14 @@ import multer from "multer";
 import { AIController } from "@presentation/controllers/AIController";
 import { AuthController } from "@presentation/controllers/AuthController";
 import { ReceiptController } from "@presentation/controllers/ReceiptController";
+import { AnalyticsController } from "@presentation/controllers/AnalyticsController";
 import { authMiddleware } from "@presentation/middleware/authMiddleware";
 
 const router = Router();
 const aiController = new AIController();
 const authController = new AuthController();
 const receiptController = new ReceiptController();
+const analyticsController = new AnalyticsController();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,6 +35,9 @@ router.put("/auth/onboarding", authMiddleware, (req, res, next) =>
 router.get("/auth/me", authMiddleware, (req, res, next) =>
   authController.getCurrentUser(req, res, next),
 );
+router.patch("/auth/profile", authMiddleware, (req, res, next) =>
+  authController.updateProfile(req, res, next),
+);
 
 // AI Routes
 router.post("/ai/generate", (req, res, next) =>
@@ -49,6 +54,20 @@ router.post(
 );
 router.get("/ai/expenses", authMiddleware, (req, res, next) =>
   receiptController.listExpenses(req, res, next),
+);
+router.post("/ai/wise-score", authMiddleware, (req, res, next) =>
+  aiController.computeWiseScore(req, res, next),
+);
+
+// Analytics (auth required)
+router.get("/ai/analytics/summary", authMiddleware, (req, res, next) =>
+  analyticsController.getSummary(req, res, next),
+);
+router.get("/ai/analytics/heatmap", authMiddleware, (req, res, next) =>
+  analyticsController.getHeatmap(req, res, next),
+);
+router.get("/ai/analytics/behavioral", authMiddleware, (req, res, next) =>
+  analyticsController.getBehavioral(req, res, next),
 );
 
 export { router as routes };

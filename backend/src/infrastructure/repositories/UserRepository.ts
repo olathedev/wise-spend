@@ -15,6 +15,9 @@ export class UserRepository implements IUserRepository {
     if (document.monthlyIncome != null) user.monthlyIncome = document.monthlyIncome;
     if (document.financialGoals != null) user.financialGoals = document.financialGoals;
     if (document.coachPersonality != null) user.coachPersonality = document.coachPersonality;
+    if (document.wiseScore != null) user.wiseScore = document.wiseScore;
+    if (document.wiseScoreUpdatedAt != null) user.wiseScoreUpdatedAt = document.wiseScoreUpdatedAt;
+    if (document.wiseScoreTier != null) user.wiseScoreTier = document.wiseScoreTier;
     return user;
   }
 
@@ -39,6 +42,9 @@ export class UserRepository implements IUserRepository {
       monthlyIncome: entity.monthlyIncome,
       financialGoals: entity.financialGoals,
       coachPersonality: entity.coachPersonality,
+      wiseScore: entity.wiseScore,
+      wiseScoreUpdatedAt: entity.wiseScoreUpdatedAt,
+      wiseScoreTier: entity.wiseScoreTier,
     });
 
     const saved = await document.save();

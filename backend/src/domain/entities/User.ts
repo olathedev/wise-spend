@@ -13,6 +13,10 @@ export class User extends BaseEntity {
   public financialGoals?: string[];
   /** Onboarding: coach persona id (e.g. drill_sergeant, cheerleader, analyst) */
   public coachPersonality?: string;
+  /** AI-computed Wise Score 0–1000 (budget discipline, savings, goals). */
+  public wiseScore?: number;
+  public wiseScoreUpdatedAt?: Date;
+  public wiseScoreTier?: string;
 
   constructor(
     email: string,

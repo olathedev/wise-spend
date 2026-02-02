@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction } from '../types';
 import { generateSocraticInsight } from './services/geminiService';
+import SocraticInsightContent from './SocraticInsightContent';
 
 interface ReceiptModalProps {
   transaction: Transaction | null;
@@ -161,10 +162,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
                         <span className="material-icons-round">lightbulb</span>
                       </div>
                       <div>
-                        <h4 className="font-bold text-teal-900 dark:text-teal-400 text-lg mb-2">Socratic Insight</h4>
-                        <div className={`text-sm text-slate-600 dark:text-teal-400/80 leading-relaxed ${isLoading ? 'animate-pulse italic text-slate-400' : ''}`}>
-                          {insight}
-                        </div>
+                        <h4 className="font-bold text-teal-900 dark:text-teal-400 text-lg mb-3">Socratic Insight</h4>
+                        <SocraticInsightContent insight={insight} isLoading={isLoading} />
                       </div>
                     </div>
                   </div>

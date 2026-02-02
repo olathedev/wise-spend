@@ -49,15 +49,12 @@ export default function GrowPage() {
                 </button>
               </div>
             </div>
-
-            {/* Tab Content - Scrollable */}
             <div className="flex-1 overflow-y-auto min-h-0">
               {activeTab === "investments" && <InvestmentSuggestions />}
               {activeTab === "knowledge" && <FinancialLiteracyCards />}
             </div>
           </div>
 
-          {/* Side Chat Panel - Desktop Only */}
           <div className="hidden lg:flex lg:col-span-1 flex-col min-h-0">
             <AIChatPanel />
           </div>

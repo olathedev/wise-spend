@@ -76,8 +76,10 @@ export default function OnboardingPage() {
       setIsSubmitting(true);
       setSubmitError(null);
       try {
+        const monthlyIncomeStr = formData.monthlyIncome.replace(/,/g, "").trim();
+        const monthlyIncomeNum = monthlyIncomeStr ? parseFloat(monthlyIncomeStr) : 0;
         const data = await completeOnboarding({
-          monthlyIncome: formData.monthlyIncome,
+          monthlyIncome: Number.isFinite(monthlyIncomeNum) ? String(monthlyIncomeNum) : formData.monthlyIncome,
           financialGoals: formData.financialGoals,
           coachPersonality: formData.coachPersonality,
         });

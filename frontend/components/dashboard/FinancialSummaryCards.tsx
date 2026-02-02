@@ -5,23 +5,30 @@ import { motion } from "framer-motion";
 import { Camera, DollarSign, ShoppingBag, Verified } from "lucide-react";
 import StatCard from "./StatCard";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "@/services/authService";
+import { getCurrentUser, computeWiseScore } from "@/services/authService";
 import { getExpenses } from "@/services/receiptService";
 import { parseAmountFromTitle } from "@/lib/expenseToTransaction";
+import MonthlyIncomeModal from "./MonthlyIncomeModal";
 
 export default function FinancialSummaryCards() {
   const router = useRouter();
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [monthlySpending, setMonthlySpending] = useState<number>(0);
+  const [wiseScore, setWiseScore] = useState<number | null>(null);
+  const [wiseScoreTier, setWiseScoreTier] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  const [wiseScoreComputing, setWiseScoreComputing] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Fetch user data for monthly income
+        // Fetch user data for monthly income and Wise Score
         const userData = await getCurrentUser();
-        setMonthlyIncome(userData.user.monthlyIncome);
+        setMonthlyIncome(userData.monthlyIncome ?? null);
+        setWiseScore(userData.wiseScore ?? null);
+        setWiseScoreTier(userData.wiseScoreTier ?? null);
 
         // Fetch expenses to calculate monthly spending
         const expenses = await getExpenses();
@@ -92,15 +99,27 @@ export default function FinancialSummaryCards() {
           </div>
         </motion.button>
       </div>
-      <div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setIncomeModalOpen(true)}
+        onKeyDown={(e) => e.key === "Enter" && setIncomeModalOpen(true)}
+        className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-3xl"
+      >
         <StatCard
           icon={<DollarSign size={24} className="text-teal-600" />}
           label="Monthly Income"
           value={loading ? "Loading..." : formatCurrency(monthlyIncome)}
-          trend={monthlyIncome ? "From onboarding" : "Not set"}
+          trend={monthlyIncome ? "Tap to add or edit" : "Tap to set"}
           trendType={monthlyIncome ? "neutral" : "neutral"}
         />
       </div>
+      <MonthlyIncomeModal
+        isOpen={incomeModalOpen}
+        onClose={() => setIncomeModalOpen(false)}
+        currentIncome={monthlyIncome}
+        onSaved={(newIncome) => setMonthlyIncome(newIncome)}
+      />
       <div>
         <StatCard
           icon={<ShoppingBag size={24} className="text-blue-600" />}
@@ -110,13 +129,46 @@ export default function FinancialSummaryCards() {
           trendType="neutral"
         />
       </div>
-      <div>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={async () => {
+          if (wiseScoreComputing) return;
+          setWiseScoreComputing(true);
+          try {
+            const result = await computeWiseScore();
+            setWiseScore(result.wiseScore);
+            setWiseScoreTier(result.wiseScoreTier);
+          } catch (e) {
+            console.error("Failed to compute Wise Score", e);
+          } finally {
+            setWiseScoreComputing(false);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !wiseScoreComputing) {
+            (e.currentTarget as HTMLElement).click();
+          }
+        }}
+        className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-3xl"
+      >
         <StatCard
           icon={<Verified size={24} className="text-teal-600" />}
           label="Wise Score"
-          value="842"
-          trend="Top 5%"
-          trendType="positive"
+          value={
+            loading
+              ? "Loading..."
+              : wiseScoreComputing
+                ? "Computing..."
+                : wiseScore != null
+                  ? String(wiseScore)
+                  : "—"
+          }
+          trend={
+            wiseScoreTier ??
+            (wiseScore == null && !wiseScoreComputing ? "Tap to compute" : "AI-powered")
+          }
+          trendType={wiseScore != null ? "positive" : "neutral"}
         />
       </div>
     </div>

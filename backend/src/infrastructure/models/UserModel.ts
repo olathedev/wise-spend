@@ -10,6 +10,9 @@ export interface IUserDocument extends Document {
   monthlyIncome?: number;
   financialGoals?: string[];
   coachPersonality?: string;
+  wiseScore?: number;
+  wiseScoreUpdatedAt?: Date;
+  wiseScoreTier?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +51,9 @@ const UserSchema = new Schema<IUserDocument>(
     monthlyIncome: { type: Number, required: false },
     financialGoals: { type: [String], default: undefined, required: false },
     coachPersonality: { type: String, required: false },
+    wiseScore: { type: Number, required: false },
+    wiseScoreUpdatedAt: { type: Date, required: false },
+    wiseScoreTier: { type: String, required: false },
   },
   {
     timestamps: true,

@@ -93,17 +93,18 @@ export const logout = () => {
 };
 
 export interface GetCurrentUserResponse {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    picture?: string | null;
-    googleId: string;
-    onboardingCompleted: boolean;
-    monthlyIncome: number | null;
-    financialGoals: string[] | null;
-    coachPersonality: string | null;
-  };
+  id: string;
+  email: string;
+  name: string;
+  picture?: string | null;
+  googleId: string;
+  onboardingCompleted: boolean;
+  monthlyIncome: number | null;
+  financialGoals: string[] | null;
+  coachPersonality: string | null;
+  wiseScore: number | null;
+  wiseScoreUpdatedAt: string | null;
+  wiseScoreTier: string | null;
 }
 
 export const getCurrentUser = async (): Promise<GetCurrentUserResponse> => {
@@ -114,6 +115,49 @@ export const getCurrentUser = async (): Promise<GetCurrentUserResponse> => {
   if (!response.data.success || !response.data.data) {
     throw new Error(
       response.data.error?.message || "Failed to get current user",
+    );
+  }
+
+  return response.data.data;
+};
+
+export interface UpdateProfileRequest {
+  monthlyIncome?: number;
+  financialGoals?: string[];
+  coachPersonality?: string;
+}
+
+export const updateProfile = async (
+  request: UpdateProfileRequest
+): Promise<GetCurrentUserResponse> => {
+  const response = await apiClient.patch<ApiResponse<GetCurrentUserResponse>>(
+    "/auth/profile",
+    request
+  );
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(
+      response.data.error?.message || "Failed to update profile",
+    );
+  }
+
+  return response.data.data;
+};
+
+export interface ComputeWiseScoreResponse {
+  wiseScore: number;
+  wiseScoreTier: string;
+  wiseScoreUpdatedAt: string;
+}
+
+export const computeWiseScore = async (): Promise<ComputeWiseScoreResponse> => {
+  const response = await apiClient.post<ApiResponse<ComputeWiseScoreResponse>>(
+    "/ai/wise-score"
+  );
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(
+      response.data.error?.message || "Failed to compute Wise Score"
     );
   }
 

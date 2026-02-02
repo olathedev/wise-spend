@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
+import {
+  getAnalyticsSummary,
+  type AnalyticsSummaryDto,
+} from "@/services/analyticsService";
 
 interface AnalyticsStatCardProps {
   icon: string;
@@ -60,8 +64,61 @@ const AnalyticsStatCard: React.FC<AnalyticsStatCardProps> = ({
   );
 };
 
+function formatCurrency(amount: number): string {
+  return `$${amount.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export default function AnalyticsSummaryCards() {
   const router = useRouter();
+  const [summary, setSummary] = useState<AnalyticsSummaryDto | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const data = await getAnalyticsSummary();
+        setSummary(data);
+      } catch {
+        setSummary(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const impulseBadge =
+    summary != null && summary.lastMonthCount > 0
+      ? (() => {
+          const pct =
+            ((summary.currentMonthCount - summary.lastMonthCount) /
+              summary.lastMonthCount) *
+            100;
+          const sign = pct >= 0 ? "+" : "";
+          return `${sign}${Math.round(pct)}% vs last mo`;
+        })()
+      : "this month";
+
+  const impulseBadgeColor =
+    summary != null &&
+    summary.lastMonthCount > 0 &&
+    summary.currentMonthCount > summary.lastMonthCount
+      ? "text-red-600 dark:text-red-400"
+      : "text-slate-600 dark:text-slate-400";
+  const impulseBadgeBg =
+    summary != null &&
+    summary.lastMonthCount > 0 &&
+    summary.currentMonthCount > summary.lastMonthCount
+      ? "bg-red-50/50 dark:bg-red-900/10"
+      : "bg-slate-50/50 dark:bg-slate-900/10";
+
+  const wiseTrendValue =
+    summary?.wiseScore != null ? `${summary.wiseScore}` : "—";
+  const wiseTrendBadge = summary?.wiseScoreTier ?? "Compute on dashboard";
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
@@ -70,11 +127,17 @@ export default function AnalyticsSummaryCards() {
           icon="bolt"
           iconBg="bg-orange-100/50 dark:bg-orange-900/20"
           iconColor="text-orange-600 dark:text-orange-400"
-          label="Impulse Buy Frequency"
-          value="8/month"
-          badge="+12% vs last mo"
-          badgeColor="text-red-600 dark:text-red-400"
-          badgeBg="bg-red-50/50 dark:bg-red-900/10"
+          label="Transactions This Month"
+          value={
+            loading
+              ? "…"
+              : summary != null
+                ? `${summary.currentMonthCount}`
+                : "—"
+          }
+          badge={loading ? "…" : impulseBadge}
+          badgeColor={impulseBadgeColor}
+          badgeBg={impulseBadgeBg}
         />
       </div>
       <div>
@@ -82,9 +145,9 @@ export default function AnalyticsSummaryCards() {
           icon="trending_up"
           iconBg="bg-teal-100/50 dark:bg-teal-900/20"
           iconColor="text-teal-600 dark:text-teal-400"
-          label="Wise Score Trend"
-          value="Rising"
-          badge="+24 pts"
+          label="Wise Score"
+          value={loading ? "…" : wiseTrendValue}
+          badge={loading ? "…" : wiseTrendBadge}
           badgeColor="text-teal-600 dark:text-teal-400"
           badgeBg="bg-teal-50/50 dark:bg-teal-900/10"
         />
@@ -94,9 +157,15 @@ export default function AnalyticsSummaryCards() {
           icon="auto_renew"
           iconBg="bg-blue-100/50 dark:bg-blue-900/20"
           iconColor="text-blue-600 dark:text-blue-400"
-          label="Subscription Efficiency"
-          value="94%"
-          badge="Optimal"
+          label="Monthly Spending"
+          value={
+            loading
+              ? "…"
+              : summary != null
+                ? formatCurrency(summary.currentMonthSpending)
+                : "—"
+          }
+          badge={loading ? "…" : "This month"}
           badgeColor="text-blue-600 dark:text-blue-400"
           badgeBg="bg-blue-50/50 dark:bg-blue-900/10"
         />
