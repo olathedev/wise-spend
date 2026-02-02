@@ -30,6 +30,9 @@ router.post("/auth/refresh", (req, res, next) =>
 router.put("/auth/onboarding", authMiddleware, (req, res, next) =>
   authController.completeOnboarding(req, res, next),
 );
+router.get("/auth/me", authMiddleware, (req, res, next) =>
+  authController.getCurrentUser(req, res, next),
+);
 
 // AI Routes
 router.post("/ai/generate", (req, res, next) =>

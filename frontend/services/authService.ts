@@ -91,3 +91,31 @@ export const logout = () => {
     localStorage.removeItem("auth_token");
   }
 };
+
+export interface GetCurrentUserResponse {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    picture?: string | null;
+    googleId: string;
+    onboardingCompleted: boolean;
+    monthlyIncome: number | null;
+    financialGoals: string[] | null;
+    coachPersonality: string | null;
+  };
+}
+
+export const getCurrentUser = async (): Promise<GetCurrentUserResponse> => {
+  const response = await apiClient.get<ApiResponse<GetCurrentUserResponse>>(
+    "/auth/me",
+  );
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(
+      response.data.error?.message || "Failed to get current user",
+    );
+  }
+
+  return response.data.data;
+};

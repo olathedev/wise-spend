@@ -16,6 +16,17 @@ function parseTitle(title: string): { vendor: string; amount: number } {
   return { vendor, amount };
 }
 
+/**
+ * Extract amount from expense title (returns positive number).
+ */
+export function parseAmountFromTitle(title: string): number {
+  const dashIndex = title.lastIndexOf(" - ");
+  if (dashIndex === -1) return 0;
+  const amountStr = title.slice(dashIndex + 3).trim();
+  const match = amountStr.replace(/,/g, "").match(/\$?([\d.]+)/);
+  return match ? parseFloat(match[1]) : 0;
+}
+
 function formatDate(isoDate: string): string {
   const d = new Date(isoDate);
   const now = new Date();

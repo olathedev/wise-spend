@@ -1,13 +1,72 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Camera, Shield, ShoppingBag, Verified } from "lucide-react";
+import { Camera, DollarSign, ShoppingBag, Verified } from "lucide-react";
 import StatCard from "./StatCard";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/services/authService";
+import { getExpenses } from "@/services/receiptService";
+import { parseAmountFromTitle } from "@/lib/expenseToTransaction";
 
 export default function FinancialSummaryCards() {
   const router = useRouter();
+  const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
+  const [monthlySpending, setMonthlySpending] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch user data for monthly income
+        const userData = await getCurrentUser();
+        setMonthlyIncome(userData.user.monthlyIncome);
+
+        // Fetch expenses to calculate monthly spending
+        const expenses = await getExpenses();
+        
+        // Calculate total spending for current month
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        const monthlyTotal = expenses
+          .filter((expense) => {
+            const expenseDate = new Date(expense.createdAt);
+            return (
+              expenseDate.getMonth() === currentMonth &&
+              expenseDate.getFullYear() === currentYear
+            );
+          })
+          .reduce((total, expense) => {
+            return total + parseAmountFromTitle(expense.title);
+          }, 0);
+
+        setMonthlySpending(monthlyTotal);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const formatCurrency = (amount: number | null): string => {
+    if (amount === null || amount === undefined) return "$0.00";
+    return `$${amount.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const calculateSpendingPercentage = (): string => {
+    if (!monthlyIncome || monthlyIncome === 0) return "N/A";
+    const percentage = (monthlySpending / monthlyIncome) * 100;
+    return `${Math.round(percentage)}% of income`;
+  };
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -35,19 +94,19 @@ export default function FinancialSummaryCards() {
       </div>
       <div>
         <StatCard
-          icon={<Shield size={24} className="text-teal-600" />}
-          label="Emergency Fund"
-          value="$12,450.00"
-          trend="+4.2%"
-          trendType="positive"
+          icon={<DollarSign size={24} className="text-teal-600" />}
+          label="Monthly Income"
+          value={loading ? "Loading..." : formatCurrency(monthlyIncome)}
+          trend={monthlyIncome ? "From onboarding" : "Not set"}
+          trendType={monthlyIncome ? "neutral" : "neutral"}
         />
       </div>
       <div>
         <StatCard
           icon={<ShoppingBag size={24} className="text-blue-600" />}
           label="Monthly Spending"
-          value="$2,180.40"
-          trend="82% of budget"
+          value={loading ? "Loading..." : formatCurrency(monthlySpending)}
+          trend={calculateSpendingPercentage()}
           trendType="neutral"
         />
       </div>

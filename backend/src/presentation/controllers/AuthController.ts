@@ -4,7 +4,8 @@ import { AuthenticateWithGoogleUseCase } from "@application/use-cases/Authentica
 import { CompleteOnboardingUseCase } from "@application/use-cases/CompleteOnboardingUseCase";
 import { RefreshTokenUseCase } from "@application/use-cases/RefreshTokenUseCase";
 import { AuthRequest } from "@presentation/middleware/authMiddleware";
-import { UnauthorizedError } from "@shared/errors/AppError";
+import { UnauthorizedError, NotFoundError } from "@shared/errors/AppError";
+import { UserRepository } from "@infrastructure/repositories/UserRepository";
 
 export class AuthController extends BaseController {
   async authenticateWithGoogle(
@@ -54,5 +55,41 @@ export class AuthController extends BaseController {
       res,
       next,
     );
+  }
+
+  async getCurrentUser(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return next(new UnauthorizedError("Unauthorized"));
+    }
+
+    try {
+      const userRepo = new UserRepository();
+      const user = await userRepo.findById(userId);
+      if (!user) {
+        return next(new NotFoundError("User not found"));
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          picture: user.picture,
+          googleId: user.googleId,
+          onboardingCompleted: user.onboardingCompleted,
+          monthlyIncome: user.monthlyIncome ?? null,
+          financialGoals: user.financialGoals ?? null,
+          coachPersonality: user.coachPersonality ?? null,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 }
