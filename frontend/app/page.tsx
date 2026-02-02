@@ -3,6 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { Features } from "@/components/landing/Features";
+import { Footer } from "@/components/landing/Footer";
 
 export default function LandingPage() {
   return (
@@ -56,6 +59,9 @@ export default function LandingPage() {
       </nav>
 
       <HeroSection />
+      <HowItWorks />
+      <Features />
+      <Footer />
     </div>
   );
 }
