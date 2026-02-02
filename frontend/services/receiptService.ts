@@ -2,6 +2,18 @@ import apiClient from "./axios";
 
 export interface AnalyzeReceiptResponse {
   analysis: string;
+  expenseId?: string;
+  title?: string;
+  imageUrl?: string;
+}
+
+export interface ExpenseDto {
+  id: string;
+  imageUrl: string;
+  title: string;
+  aiDescription: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ApiResponse<T> {
@@ -29,6 +41,20 @@ export async function analyzeReceipt(
   if (!response.data.success || !response.data.data) {
     throw new Error(
       response.data.error?.message || "Failed to analyze receipt",
+    );
+  }
+
+  return response.data.data;
+}
+
+export async function getExpenses(): Promise<ExpenseDto[]> {
+  const response = await apiClient.get<ApiResponse<ExpenseDto[]>>(
+    "/ai/expenses",
+  );
+
+  if (!response.data.success || !response.data.data) {
+    throw new Error(
+      response.data.error?.message || "Failed to fetch expenses",
     );
   }
 

@@ -75,4 +75,33 @@ export class ReceiptController extends BaseController {
       next(error);
     }
   }
+
+  async listExpenses(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return next(new UnauthorizedError("Unauthorized"));
+    }
+
+    try {
+      const expenseRepo = new ExpenseRepository();
+      const expenses = await expenseRepo.findByUserId(userId);
+      res.status(200).json({
+        success: true,
+        data: expenses.map((e) => ({
+          id: e.id,
+          imageUrl: e.imageUrl,
+          title: e.title,
+          aiDescription: e.aiDescription,
+          createdAt: e.createdAt,
+          updatedAt: e.updatedAt,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

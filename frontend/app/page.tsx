@@ -1,42 +1,61 @@
-import Link from 'next/link';
-import Image from 'next/image';
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { HeroSection } from "@/components/landing/HeroSection";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-900 dark:to-slate-800">
-      <div className="text-center space-y-8 px-4">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <Image
-            src="/logo.jpeg"
-            alt="WiseSpend Logo - Financial AI Coach"
-            width={64}
-            height={64}
-            className="rounded-lg"
-            priority
-          />
-          <h1 className="text-5xl font-bold text-slate-900 dark:text-white">WiseSpend</h1>
+    <div className="min-h-screen bg-[#111111] text-white selection:bg-yellow-400 selection:text-black font-sans overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-50 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+      {/* Glassmorphic Navbar */}
+      <nav className="fixed top-0 w-full z-[60] px-4 py-6 md:px-6 md:py-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between backdrop-blur-md bg-white/5 border border-white/10 px-4 py-3 md:px-8 md:py-4 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl overflow-hidden bg-yellow-400 p-0.5">
+              <Image
+                src="/logo.jpeg"
+                alt="WiseSpend Logo"
+                width={40}
+                height={40}
+                className="rounded-[0.5rem] md:rounded-[0.6rem]"
+              />
+            </div>
+            <span className="text-lg md:text-2xl font-[900] tracking-tighter uppercase italic">
+              WiseSpend
+            </span>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-10">
+            {["Products", "Features", "Plans", "About"].map((item) => (
+              <Link
+                key={item}
+                href="#"
+                className="text-sm font-bold text-white/70 hover:text-white transition-colors"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4 md:gap-6">
+            <Link
+              href="/auth/signin"
+              className="text-xs md:text-sm font-bold text-white hover:text-yellow-400 transition-colors"
+            >
+              Login
+            </Link>
+            <Link
+              href="/auth/signin"
+              className="bg-white text-black px-4 py-2 md:px-6 md:py-3 rounded-full text-[10px] md:text-sm font-black uppercase tracking-tight hover:bg-yellow-400 transition-all active:scale-95"
+            >
+              Start now
+            </Link>
+          </div>
         </div>
-        <h2 className="text-4xl font-bold text-slate-900 dark:text-white">
-          Transform Financial Fog into Actionable Resilience
-        </h2>
-        <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-          Your AI-powered financial coach that understands your spending and guides you toward your goals.
-        </p>
-        <div className="flex gap-4 justify-center pt-4">
-          <Link
-            href="/auth/signin"
-            className="bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20"
-          >
-            Go to Dashboard
-          </Link>
-          <Link
-            href="/dashboard"
-            className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-          >
-            Learn More
-          </Link>
-        </div>
-      </div>
+      </nav>
+
+      <HeroSection />
     </div>
   );
 }

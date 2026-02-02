@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -23,8 +23,14 @@ export default function ScanPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadMode, setUploadMode] = useState<"file" | "camera">("file");
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const processingRef = useRef(false);
 
   const handleFileSelect = useCallback(async (file: File) => {
+    // Prevent multiple simultaneous requests
+    if (processingRef.current) {
+      return;
+    }
+
     setError(null);
     setAnalysis(null);
     setPreviewUrl((prev) => {
@@ -32,6 +38,8 @@ export default function ScanPage() {
       return URL.createObjectURL(file);
     });
     setIsAnalyzing(true);
+    processingRef.current = true;
+    
     try {
       const result = await analyzeReceipt(file);
       setAnalysis(result.analysis);
@@ -42,6 +50,7 @@ export default function ScanPage() {
       );
     } finally {
       setIsAnalyzing(false);
+      processingRef.current = false;
     }
   }, []);
 

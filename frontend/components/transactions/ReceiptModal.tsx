@@ -14,6 +14,11 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (transaction?.receiptAnalysis) {
+      setInsight(transaction.receiptAnalysis);
+      setIsLoading(false);
+      return;
+    }
     if (transaction) {
       setIsLoading(true);
       generateSocraticInsight(transaction).then(res => {
@@ -59,6 +64,13 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
             
             {/* Left Column: Visual Receipt */}
             <div className="relative bg-slate-100 dark:bg-slate-800/50 rounded-3xl overflow-hidden flex items-center justify-center p-8 min-h-[500px]">
+              {transaction.imageUrl ? (
+                <img
+                  src={transaction.imageUrl}
+                  alt={`Receipt for ${transaction.vendor}`}
+                  className="max-w-full max-h-[500px] w-auto object-contain rounded-2xl shadow-2xl"
+                />
+              ) : (
               <div className="relative bg-white dark:bg-slate-50 shadow-2xl p-8 w-full max-w-sm flex flex-col items-center animate-in slide-in-from-left-4 duration-700">
                 <div className="text-center mb-8">
                   <h3 className="font-bold text-lg uppercase tracking-[0.2em] text-slate-800">{transaction.vendor}</h3>
@@ -93,6 +105,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Right Column: Data & Insights */}

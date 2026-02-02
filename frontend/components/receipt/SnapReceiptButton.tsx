@@ -14,6 +14,7 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const processingRef = useRef(false);
 
   useEffect(() => {
     // Detect if device is mobile
@@ -43,6 +44,14 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Prevent multiple simultaneous processing
+    if (processingRef.current) {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
     // Validate file type
     if (!file.type.startsWith("image/")) {
       alert("Please select an image file");
@@ -62,6 +71,7 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
     }
 
     setIsProcessing(true);
+    processingRef.current = true;
 
     try {
       if (onFileSelect) {
@@ -82,6 +92,7 @@ const SnapReceiptButton: React.FC<SnapReceiptButtonProps> = ({
       alert("Failed to process receipt. Please try again.");
     } finally {
       setIsProcessing(false);
+      processingRef.current = false;
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

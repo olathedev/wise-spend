@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import Header from "@/components/layout/Header";
-import {
-  MOCK_TRANSACTIONS,
-  CATEGORIES,
-} from "@/components/transactions/constants";
+import { CATEGORIES } from "@/components/transactions/constants";
 import { Category, Insight, Transaction } from "@/components/types";
 import { getFinancialInsight } from "@/components/transactions/services/geminiService";
 import CategoryBadge from "@/components/transactions/CategoryBadge";
 import ReceiptModal from "@/components/transactions/ReceiptModal";
+import { getExpenses } from "@/services/receiptService";
+import { expenseToTransaction } from "@/lib/expenseToTransaction";
 
 export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<Category>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [insight, setInsight] = useState<Insight | null>(null);
@@ -20,17 +22,38 @@ export default function TransactionsPage() {
     useState<Transaction | null>(null);
 
   useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const expenses = await getExpenses();
+        // Deduplicate by ID in case backend returns duplicates
+        const uniqueExpenses = expenses.filter(
+          (expense, index, self) =>
+            index === self.findIndex((e) => e.id === expense.id)
+        );
+        setTransactions(uniqueExpenses.map(expenseToTransaction));
+      } catch {
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (transactions.length === 0) return;
     const fetchInsight = async () => {
       setLoadingInsight(true);
-      const data = await getFinancialInsight(MOCK_TRANSACTIONS);
+      const data = await getFinancialInsight(transactions);
       setInsight(data);
       setLoadingInsight(false);
     };
     fetchInsight();
-  }, []);
+  }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
-    return MOCK_TRANSACTIONS.filter((t) => {
+    return transactions.filter((t) => {
       const matchesCategory =
         activeCategory === "All" || t.category === activeCategory;
       const matchesSearch = t.vendor
@@ -38,14 +61,14 @@ export default function TransactionsPage() {
         .includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [transactions, activeCategory, searchQuery]);
 
   return (
     <>
       <Header />
 
       <div className="mb-8 px-1">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-black mb-2 leading-tight">
           Transactions
         </h2>
         <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400">
@@ -86,6 +109,39 @@ export default function TransactionsPage() {
 
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
         <div className="flex-1 bg-white dark:bg-card-dark rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+          {loading ? (
+            <div className="flex-1 flex items-center justify-center py-20">
+              <div className="flex flex-col items-center gap-4">
+                <span className="material-icons-round text-4xl text-primary animate-pulse">
+                  receipt_long
+                </span>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Loading transactions…
+                </p>
+              </div>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-20 px-6">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                <span className="material-icons-round text-3xl text-slate-400">
+                  receipt_long
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                No transactions yet
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-sm mb-6">
+                Scan a receipt on the Scan page to add your first expense. It will appear here with AI verification.
+              </p>
+              <Link
+                href="/dashboard/scan"
+                className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity inline-block"
+              >
+                Go to Scan
+              </Link>
+            </div>
+          ) : (
+            <>
           {/* Desktop Table View */}
           <div className="flex-1 overflow-x-auto hidden md:block">
             <table className="w-full text-left border-collapse">
@@ -212,8 +268,7 @@ export default function TransactionsPage() {
 
           <div className="p-4 sm:p-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">
-              Showing {filteredTransactions.length} of{" "}
-              {MOCK_TRANSACTIONS.length}
+              Showing {filteredTransactions.length} of {transactions.length}
             </p>
             <div className="flex gap-2">
               <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-primary transition-colors">
@@ -228,6 +283,8 @@ export default function TransactionsPage() {
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
 
         <div className="w-full lg:w-80 flex-shrink-0 space-y-6">

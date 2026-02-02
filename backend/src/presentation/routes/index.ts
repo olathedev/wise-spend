@@ -44,5 +44,8 @@ router.post(
   upload.single("image"),
   (req, res, next) => receiptController.analyzeReceipt(req, res, next),
 );
+router.get("/ai/expenses", authMiddleware, (req, res, next) =>
+  receiptController.listExpenses(req, res, next),
+);
 
 export { router as routes };

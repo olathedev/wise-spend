@@ -6,6 +6,8 @@ import { LogOut } from "lucide-react";
 import { NAVIGATION_ITEMS } from "../constants";
 import { AppView } from "../types";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { logout } from "@/services/authService";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -35,6 +37,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
       router.push(item.href);
       if (onClose) onClose();
     }
+  };
+
+  const handleSignOut = async () => {
+    logout();
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -86,7 +93,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen = true, onClose }) => {
           ))}
         </nav>
 
-        <button className="mt-auto flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors">
+        <button
+          onClick={handleSignOut}
+          className="mt-auto flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors"
+        >
           <LogOut size={20} />
           <span className="font-medium">Sign Out</span>
         </button>

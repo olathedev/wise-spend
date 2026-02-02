@@ -36,6 +36,9 @@ export interface Transaction {
   time?: string;
   total?: number;
   items?: TransactionItem[];
+  // Backend expense (scanned receipt)
+  imageUrl?: string;
+  receiptAnalysis?: string;
 }
 
 export interface Insight {

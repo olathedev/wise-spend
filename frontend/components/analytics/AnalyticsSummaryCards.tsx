@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
-import ReceiptSnapModal from "../receipt/ReceiptSnapModal";
 
 interface AnalyticsStatCardProps {
   icon: string;
@@ -61,7 +61,7 @@ const AnalyticsStatCard: React.FC<AnalyticsStatCardProps> = ({
 };
 
 export default function AnalyticsSummaryCards() {
-  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
@@ -106,7 +106,7 @@ export default function AnalyticsSummaryCards() {
           type="button"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setReceiptModalOpen(true)}
+          onClick={() => router.push("/dashboard/scan")}
           className="w-full h-full min-h-[120px] md:min-h-[140px] flex flex-col items-center justify-center gap-2 md:gap-3 p-4 md:p-6 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-400 text-white shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all group overflow-hidden relative"
         >
           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -123,10 +123,6 @@ export default function AnalyticsSummaryCards() {
           </div>
         </motion.button>
       </div>
-      <ReceiptSnapModal
-        isOpen={receiptModalOpen}
-        onClose={() => setReceiptModalOpen(false)}
-      />
     </div>
   );
 }

@@ -85,3 +85,9 @@ export const completeOnboarding = async (
 
   return response.data.data;
 };
+
+export const logout = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("auth_token");
+  }
+};

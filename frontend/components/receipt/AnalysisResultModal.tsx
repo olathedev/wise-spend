@@ -83,7 +83,6 @@ export default function AnalysisResultModal({
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           className="relative w-full max-w-lg"
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors"
@@ -91,7 +90,6 @@ export default function AnalysisResultModal({
             <X size={28} />
           </button>
 
-          {/* Desktop Navigation Arrows */}
           {totalCards > 1 && (
             <div className="hidden md:block">
               <button
@@ -110,13 +108,11 @@ export default function AnalysisResultModal({
           )}
 
           <div className="relative">
-            {/* Background stacks */}
             <div className="absolute top-4 inset-x-4 h-full bg-white/20 rounded-3xl translate-y-4 scale-95 blur-sm opacity-50"></div>
             <div className="absolute top-2 inset-x-2 h-full bg-white/30 rounded-3xl translate-y-2 scale-[0.97] blur-[2px] opacity-70"></div>
 
             <div className="teal-gradient-border card-stack-shadow rounded-[2.5rem] overflow-hidden relative bg-white">
               <div className="relative p-8 md:p-10">
-                {/* Decoration */}
                 <div className="absolute top-0 left-0 w-full h-32 overflow-hidden opacity-50 pointer-events-none">
                   <div
                     className="confetti-particle animate-float"
