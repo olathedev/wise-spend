@@ -29,3 +29,4 @@ export const getAIService = (): IAIService => {
 };
 
 export { IAIService } from '@domain/interfaces/IAIService';
+export { OpikService, getOpikService } from './OpikService';

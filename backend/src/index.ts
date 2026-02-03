@@ -4,7 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { errorHandler } from "@presentation/middleware/errorHandler";
 import { routes } from "@presentation/routes";
-import { initializeAIService } from "@infrastructure/services";
+import { initializeAIService, getOpikService } from "@infrastructure/services";
 import { initializeDatabase } from "@infrastructure/database";
 import { Logger } from "@shared/utils/logger";
 
@@ -54,6 +54,28 @@ app.get("/health", async (_req, res) => {
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
+
+// Graceful shutdown handler to flush Opik traces
+const gracefulShutdown = async (signal: string) => {
+  Logger.info(`Received ${signal}, shutting down gracefully...`);
+  
+  try {
+    const opikService = getOpikService();
+    if (opikService.enabled) {
+      Logger.info("Flushing Opik traces...");
+      await opikService.flush();
+      Logger.info("Opik traces flushed successfully");
+    }
+  } catch (error) {
+    Logger.error("Error flushing Opik traces during shutdown", error);
+  }
+  
+  process.exit(0);
+};
+
+// Register shutdown handlers
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Start server
 const startServer = async () => {
