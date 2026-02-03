@@ -1,5 +1,4 @@
 import "dotenv/config";
-import "tsconfig-paths/register";
 import express, { Express } from "express";
 import cors from "cors";
 import helmet from "helmet";
