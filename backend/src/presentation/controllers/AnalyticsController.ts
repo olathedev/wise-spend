@@ -12,7 +12,7 @@ export class AnalyticsController extends BaseController {
   async getSummary(
     req: AuthRequest,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {
@@ -72,7 +72,7 @@ export class AnalyticsController extends BaseController {
   async getHeatmap(
     req: AuthRequest,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {
@@ -109,7 +109,7 @@ export class AnalyticsController extends BaseController {
           day,
           amount: Math.round(dayAmount[day] * 100) / 100,
           count: dayCount[day],
-        })
+        }),
       );
 
       res.status(200).json({
@@ -125,7 +125,7 @@ export class AnalyticsController extends BaseController {
   async getBehavioral(
     req: AuthRequest,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {
@@ -140,10 +140,11 @@ export class AnalyticsController extends BaseController {
 
       const recent = expenses.slice(0, 15);
       if (recent.length === 0) {
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: { insight: null, userName: user?.name ?? "You" },
         });
+        return;
       }
 
       const summary = recent

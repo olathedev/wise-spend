@@ -35,7 +35,9 @@ export class SaveOnboardingDataUseCase implements IUseCase<
 
     await this.userRepository.update(userId, {
       onboardingCompleted: true,
-      onboardingData,
+      monthlyIncome: Number(onboardingData.monthlyIncome),
+      financialGoals: onboardingData.financialGoals,
+      coachPersonality: onboardingData.coachPersonality,
     });
 
     return { success: true };
