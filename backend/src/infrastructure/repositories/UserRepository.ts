@@ -14,6 +14,11 @@ export class UserRepository implements IUserRepository {
     user.onboardingCompleted = document.onboardingCompleted ?? false;
     if (document.monthlyIncome != null) user.monthlyIncome = document.monthlyIncome;
     if (document.financialGoals != null) user.financialGoals = document.financialGoals;
+    if (document.goalTargets != null) {
+      // Convert Map to Record<string, number>
+      const map = document.goalTargets as Map<string, number>;
+      user.goalTargets = Object.fromEntries(map);
+    }
     if (document.coachPersonality != null) user.coachPersonality = document.coachPersonality;
     if (document.wiseScore != null) user.wiseScore = document.wiseScore;
     if (document.wiseScoreUpdatedAt != null) user.wiseScoreUpdatedAt = document.wiseScoreUpdatedAt;
@@ -41,6 +46,7 @@ export class UserRepository implements IUserRepository {
       onboardingCompleted: entity.onboardingCompleted,
       monthlyIncome: entity.monthlyIncome,
       financialGoals: entity.financialGoals,
+      goalTargets: entity.goalTargets ? new Map(Object.entries(entity.goalTargets)) : undefined,
       coachPersonality: entity.coachPersonality,
       wiseScore: entity.wiseScore,
       wiseScoreUpdatedAt: entity.wiseScoreUpdatedAt,
@@ -52,12 +58,21 @@ export class UserRepository implements IUserRepository {
   }
 
   async update(id: string, entity: Partial<User>): Promise<User | null> {
+    const updateData: Record<string, unknown> = {
+      ...entity,
+      updatedAt: new Date(),
+    };
+    
+    // Convert goalTargets Record to Map for MongoDB
+    if (entity.goalTargets !== undefined) {
+      updateData.goalTargets = entity.goalTargets
+        ? new Map(Object.entries(entity.goalTargets))
+        : undefined;
+    }
+    
     const document = await UserModel.findByIdAndUpdate(
       id,
-      {
-        ...entity,
-        updatedAt: new Date(),
-      },
+      updateData,
       { new: true },
     );
 

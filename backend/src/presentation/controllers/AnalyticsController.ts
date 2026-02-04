@@ -39,7 +39,8 @@ export class AnalyticsController extends BaseController {
       for (const e of expenses) {
         const d = e.createdAt ? new Date(e.createdAt) : null;
         if (!d) continue;
-        const amount = parseAmountFromTitle(e.title);
+        // Use aiDescription as fallback, same as frontend
+        const amount = parseAmountFromTitle(e.title, e.aiDescription);
         if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
           currentMonthSpending += amount;
           currentMonthCount += 1;
@@ -99,7 +100,8 @@ export class AnalyticsController extends BaseController {
         const d = e.createdAt ? new Date(e.createdAt) : null;
         if (!d || d.getFullYear() !== year || d.getMonth() !== month) continue;
         const day = d.getDate();
-        const amount = parseAmountFromTitle(e.title);
+        // Use aiDescription as fallback, same as frontend
+        const amount = parseAmountFromTitle(e.title, e.aiDescription);
         dayAmount[day] += amount;
         dayCount[day] += 1;
       }

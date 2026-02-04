@@ -29,10 +29,20 @@ export function goalIdToGoal(id: string): Goal {
   };
 }
 
-/** Convert user financialGoals (ids) to Goal[] for display. */
-export function financialGoalsToGoals(ids: string[] | null | undefined): Goal[] {
+/** Convert user financialGoals (ids) to Goal[] for display, using goalTargets if available. */
+export function financialGoalsToGoals(
+  ids: string[] | null | undefined,
+  goalTargets?: Record<string, number> | null
+): Goal[] {
   if (!ids || !Array.isArray(ids)) return [];
-  return ids.map(goalIdToGoal);
+  return ids.map((id) => {
+    const goal = goalIdToGoal(id);
+    if (goalTargets && goalTargets[id]) {
+      goal.targetAmount = goalTargets[id];
+      goal.aiStatus = goal.targetAmount > 0 ? "On track" : "Set target";
+    }
+    return goal;
+  });
 }
 
 /** Placeholder stats when we don't have backend progress yet. */

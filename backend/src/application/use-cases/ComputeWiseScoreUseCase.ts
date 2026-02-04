@@ -39,7 +39,7 @@ export class ComputeWiseScoreUseCase
         const d = e.createdAt ? new Date(e.createdAt) : null;
         return d && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       })
-      .reduce((sum, e) => sum + parseAmountFromTitle(e.title), 0);
+      .reduce((sum, e) => sum + parseAmountFromTitle(e.title, e.aiDescription), 0);
 
     const income = user.monthlyIncome ?? 0;
     const goals = user.financialGoals ?? [];

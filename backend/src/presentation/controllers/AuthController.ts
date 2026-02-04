@@ -72,11 +72,25 @@ export class AuthController extends BaseController {
     if (!userId) {
       return next(new UnauthorizedError("Unauthorized"));
     }
-    const { monthlyIncome, financialGoals, coachPersonality } = req.body;
+    const { monthlyIncome, financialGoals, coachPersonality, goalTargets } = req.body;
     const userRepo = new UserRepository();
 
     try {
       const updates: Record<string, unknown> = {};
+      
+      // Debug logging - log entire request body
+      console.log("=== Update Profile Request ===");
+      console.log("Full req.body:", JSON.stringify(req.body, null, 2));
+      console.log("Destructured values:", {
+        monthlyIncome,
+        financialGoals,
+        coachPersonality,
+        goalTargets,
+        goalTargetsType: typeof goalTargets,
+        goalTargetsIsArray: Array.isArray(goalTargets),
+        goalTargetsKeys: goalTargets && typeof goalTargets === 'object' ? Object.keys(goalTargets) : 'N/A',
+      });
+      
       if (monthlyIncome !== undefined) {
         const raw =
           typeof monthlyIncome === "string"
@@ -90,13 +104,52 @@ export class AuthController extends BaseController {
       if (financialGoals !== undefined) {
         updates.financialGoals = Array.isArray(financialGoals) ? financialGoals : [];
       }
+      // Handle goalTargets - access directly from req.body to avoid destructuring issues
+      const goalTargetsValue = req.body.goalTargets !== undefined ? req.body.goalTargets : goalTargets;
+      
+    
+      
+      if (goalTargetsValue !== undefined && goalTargetsValue !== null) {
+        // Validate goalTargets is an object with string keys and number values
+        if (typeof goalTargetsValue === "object" && !Array.isArray(goalTargetsValue)) {
+          const validated: Record<string, number> = {};
+          let hasValidTarget = false;
+          
+          for (const [key, value] of Object.entries(goalTargetsValue)) {
+            if (typeof key !== "string" || key.trim() === "") {
+              continue; // Skip invalid keys
+            }
+            const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : Number(value);
+            if (Number.isFinite(num) && num > 0) {
+              validated[key] = num;
+              hasValidTarget = true;
+            } else {
+              console.warn(`Invalid goal target value for key "${key}":`, value, typeof value);
+            }
+          }
+          
+          if (hasValidTarget) {
+            updates.goalTargets = validated;
+            console.log("Validated goalTargets:", validated);
+          } else {
+            return next(new ValidationError(`All goal target values must be positive numbers. Received: ${JSON.stringify(goalTargetsValue)}`));
+          }
+        } else {
+          return next(new ValidationError(`Invalid goalTargets format: must be an object, got ${typeof goalTargetsValue} (${Array.isArray(goalTargetsValue) ? 'array' : typeof goalTargetsValue})`));
+        }
+      } else {
+        console.log("goalTargets is undefined or null in request body");
+      }
       if (coachPersonality !== undefined) {
         updates.coachPersonality = coachPersonality ?? "";
       }
+      
+   
+      
       if (Object.keys(updates).length === 0) {
         return next(new ValidationError("No valid fields to update"));
       }
-      const updated = await userRepo.update(userId, updates as { monthlyIncome?: number; financialGoals?: string[]; coachPersonality?: string });
+      const updated = await userRepo.update(userId, updates as { monthlyIncome?: number; financialGoals?: string[]; goalTargets?: Record<string, number>; coachPersonality?: string });
       if (!updated) {
         return next(new NotFoundError("User not found"));
       }
@@ -111,6 +164,7 @@ export class AuthController extends BaseController {
           onboardingCompleted: updated.onboardingCompleted,
           monthlyIncome: updated.monthlyIncome ?? null,
           financialGoals: updated.financialGoals ?? null,
+          goalTargets: updated.goalTargets ?? null,
           coachPersonality: updated.coachPersonality ?? null,
           wiseScore: updated.wiseScore ?? null,
           wiseScoreUpdatedAt: updated.wiseScoreUpdatedAt ?? null,
@@ -150,6 +204,7 @@ export class AuthController extends BaseController {
           onboardingCompleted: user.onboardingCompleted,
           monthlyIncome: user.monthlyIncome ?? null,
           financialGoals: user.financialGoals ?? null,
+          goalTargets: user.goalTargets ?? null,
           coachPersonality: user.coachPersonality ?? null,
           wiseScore: user.wiseScore ?? null,
           wiseScoreUpdatedAt: user.wiseScoreUpdatedAt ?? null,

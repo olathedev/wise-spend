@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { motion, useScroll } from "framer-motion";
 import {
   Lightbulb,
@@ -11,6 +11,8 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
+import FinancialTipsModal from "./FinancialTipsModal";
+import { generateFinancialTips, FinancialTip } from "@/services/financialTipsService";
 
 const INSIGHTS = [
   {
@@ -57,6 +59,34 @@ const INSIGHTS = [
 
 export default function FinancialInsights() {
   const ref = useRef(null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [tips, setTips] = useState<FinancialTip[]>([]);
+  const [loadingTips, setLoadingTips] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCardClick = async (topic: string, category?: string) => {
+    setSelectedTopic(topic);
+    setIsModalOpen(true);
+    setLoadingTips(true);
+    setTips([]);
+
+    try {
+      const generatedTips = await generateFinancialTips(topic, category);
+      setTips(generatedTips);
+    } catch (error) {
+      console.error("Failed to generate tips:", error);
+      // Tips will fall back to mock tips in the service
+      setTips([]);
+    } finally {
+      setLoadingTips(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTopic(null);
+    setTips([]);
+  };
 
   return (
     <div className="mb-8">
@@ -79,7 +109,10 @@ export default function FinancialInsights() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* CTA Card */}
-        <div className="w-full h-44 rounded-2xl bg-slate-900 p-6 flex flex-col justify-between relative overflow-hidden group">
+        <Link
+          href="/dashboard/grow"
+          className="w-full h-44 rounded-2xl bg-slate-900 p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer"
+        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/20 rounded-full blur-2xl -mr-10 -mt-10 transition-all group-hover:bg-teal-500/30"></div>
           <div>
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-3 text-white backdrop-blur-sm">
@@ -97,13 +130,14 @@ export default function FinancialInsights() {
               <div className="h-full w-1/3 bg-teal-500 rounded-full"></div>
             </div>
           </div>
-        </div>
+        </Link>
 
         {INSIGHTS.slice(0, 3).map((item) => (
           <motion.div
             whileHover={{ y: -4 }}
             key={item.id}
-            className={`w-full h-44 rounded-2xl p-6 flex flex-col justify-between border ${item.border} ${item.bg} hover:shadow-sm transition-all`}
+            onClick={() => handleCardClick(item.title, item.category)}
+            className={`w-full h-44 rounded-2xl p-6 flex flex-col justify-between border ${item.border} ${item.bg} hover:shadow-sm transition-all cursor-pointer`}
           >
             <div className="flex justify-between items-start">
               <div
@@ -128,6 +162,14 @@ export default function FinancialInsights() {
           </motion.div>
         ))}
       </div>
+
+      <FinancialTipsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        topic={selectedTopic || ""}
+        tips={tips}
+        loading={loadingTips}
+      />
     </div>
   );
 }

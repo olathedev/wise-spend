@@ -47,7 +47,7 @@ export default function FinancialSummaryCards() {
             );
           })
           .reduce((total, expense) => {
-            return total + parseAmountFromTitle(expense.title);
+            return total + parseAmountFromTitle(expense.title, expense.aiDescription);
           }, 0);
 
         setMonthlySpending(monthlyTotal);

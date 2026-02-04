@@ -1,0 +1,101 @@
+# MongoDB Schema Reference
+
+This document describes the MongoDB collections and their schemas for the WiseSpend application.
+
+## Collections
+
+### 1. Users Collection
+
+**Model**: `UserModel`  
+**Collection Name**: `users`
+
+```typescript
+{
+  _id: ObjectId,
+  email: string (unique, lowercase, trimmed),
+  name: string (required),
+  picture?: string,
+  googleId: string (unique, required),
+  isActive: boolean (default: true),
+  onboardingCompleted: boolean (default: false),
+  monthlyIncome?: number,
+  financialGoals?: string[],
+  goalTargets?: Map<string, number>,  // goalId -> targetAmount
+  coachPersonality?: string,
+  wiseScore?: number,
+  wiseScoreUpdatedAt?: Date,
+  wiseScoreTier?: string,
+  createdAt: Date (auto),
+  updatedAt: Date (auto)
+}
+```
+
+**Indexes**:
+- `email` (unique)
+- `googleId` (unique)
+- `financialGoals`
+- `goalTargets`
+
+### 2. Expenses Collection
+
+**Model**: `ExpenseModel`  
+**Collection Name**: `expenses`
+
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: "User", indexed),
+  imageUrl: string (required),
+  title: string (required, trimmed),
+  aiDescription: string (required),
+  createdAt: Date (auto),
+  updatedAt: Date (auto)
+}
+```
+
+**Indexes**:
+- `userId` (indexed)
+
+### 3. APIKeys Collection
+
+**Model**: `APIKeyModel`  
+**Collection Name**: `apikeys`
+
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: "User", indexed),
+  secret: string (required, unique, trimmed),
+  name: string (trimmed),
+  enabled: boolean (default: true, indexed),
+  lastUsedAt?: Date,
+  expiresAt?: Date,
+  createdAt: Date (auto),
+  updatedAt: Date (auto)
+}
+```
+
+**Indexes**:
+- `userId` (indexed)
+- `secret` (unique)
+- `enabled` (indexed)
+- Compound: `{ userId: 1, enabled: 1 }`
+
+**Notes**:
+- Full API Key token format: `<bot_id>:<secret>`
+- `bot_id` is calculated: `20231226 + (ObjectId timestamp % 10000)`
+- Only `secret` is stored; full token is generated dynamically
+
+## Entity Relationships
+
+```
+User (1) ──< (many) Expense
+User (1) ──< (many) APIKey
+```
+
+## Important Notes
+
+1. **API Keys**: Stored as separate collection, not embedded in User
+2. **Goal Targets**: Stored in User model as `goalTargets` Map
+3. **Expenses**: Linked to User via `userId` ObjectId reference
+4. **Timestamps**: All models use Mongoose `timestamps: true` for `createdAt`/`updatedAt`

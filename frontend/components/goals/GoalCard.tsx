@@ -4,9 +4,10 @@ import ProgressRing from "./ProgressRing";
 
 interface GoalCardProps {
   goal: Goal;
+  onClick?: () => void;
 }
 
-const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
+const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick }) => {
   const progress =
     goal.targetAmount > 0
       ? Math.min(100, (goal.currentAmount / goal.targetAmount) * 100)
@@ -14,7 +15,12 @@ const GoalCard: React.FC<GoalCardProps> = ({ goal }) => {
   const hasTarget = goal.targetAmount > 0;
 
   return (
-    <div className="bg-card-light dark:bg-card-dark p-4 sm:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative group hover:shadow-md transition-shadow">
+    <div
+      onClick={onClick}
+      className={`bg-card-light dark:bg-card-dark p-4 sm:p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative group hover:shadow-md transition-shadow ${
+        onClick ? "cursor-pointer" : ""
+      }`}
+    >
       <div className="flex justify-between items-start mb-6">
         <ProgressRing progress={progress} />
         <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 px-2 py-1 rounded-lg flex items-center gap-1 uppercase">

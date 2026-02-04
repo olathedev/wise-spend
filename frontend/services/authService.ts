@@ -101,6 +101,7 @@ export interface GetCurrentUserResponse {
   onboardingCompleted: boolean;
   monthlyIncome: number | null;
   financialGoals: string[] | null;
+  goalTargets: Record<string, number> | null;
   coachPersonality: string | null;
   wiseScore: number | null;
   wiseScoreUpdatedAt: string | null;
@@ -124,24 +125,36 @@ export const getCurrentUser = async (): Promise<GetCurrentUserResponse> => {
 export interface UpdateProfileRequest {
   monthlyIncome?: number;
   financialGoals?: string[];
+  goalTargets?: Record<string, number>;
   coachPersonality?: string;
 }
 
 export const updateProfile = async (
   request: UpdateProfileRequest
 ): Promise<GetCurrentUserResponse> => {
-  const response = await apiClient.patch<ApiResponse<GetCurrentUserResponse>>(
-    "/auth/profile",
-    request
-  );
-
-  if (!response.data.success || !response.data.data) {
-    throw new Error(
-      response.data.error?.message || "Failed to update profile",
+  try {
+    const response = await apiClient.patch<ApiResponse<GetCurrentUserResponse>>(
+      "/auth/profile",
+      request
     );
-  }
 
-  return response.data.data;
+    if (!response.data.success || !response.data.data) {
+      throw new Error(
+        response.data.error?.message || "Failed to update profile",
+      );
+    }
+
+    return response.data.data;
+  } catch (error: any) {
+    // Handle axios errors (400, 500, etc.)
+    if (error.response?.data?.error?.message) {
+      throw new Error(error.response.data.error.message);
+    }
+    if (error.response?.data?.error) {
+      throw new Error(error.response.data.error);
+    }
+    throw error;
+  }
 };
 
 export interface ComputeWiseScoreResponse {

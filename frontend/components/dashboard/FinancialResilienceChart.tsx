@@ -7,17 +7,17 @@ export default function FinancialResilienceChart() {
     <div className="bg-card-light dark:bg-card-dark p-8 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h4 className="text-lg font-bold">Financial Resilience Path</h4>
+          <h4 className="text-lg font-bold text-black">Financial Resilience Path</h4>
           <p className="text-sm text-slate-500 dark:text-slate-400">Impact of current spending on your 2030 vision.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-primary"></span>
-            <span className="text-xs font-medium">Actual</span>
+            <span className="text-xs font-medium text-primary">Actual</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-            <span className="text-xs font-medium">Target</span>
+            <span className="text-xs font-medium text-black">Target</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, XCircle, Trophy, Star } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Trophy, Star, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface QuizQuestion {
@@ -18,9 +18,10 @@ interface QuizModalProps {
   topicTitle: string;
   topicIcon: React.ReactNode;
   questions: QuizQuestion[];
+  isLoading?: boolean;
 }
 
-export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions }: QuizModalProps) {
+export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false }: QuizModalProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -31,6 +32,7 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
 
   // Shuffle questions and take 10 random ones
   const shuffledQuestions = React.useMemo(() => {
+    if (!questions || questions.length === 0) return [];
     const shuffled = [...questions].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 10);
   }, [questions]);
@@ -128,7 +130,25 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
-              {!hasStarted ? (
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <Loader2 size={48} className="animate-spin text-teal-500 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Generating Questions</h3>
+                  <p className="text-slate-600">
+                    Creating personalized questions based on your spending data...
+                  </p>
+                </div>
+              ) : shuffledQuestions.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-600 mb-6">Could not load questions. Please try again.</p>
+                  <button
+                    onClick={onClose}
+                    className="bg-teal-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-teal-600 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : !hasStarted ? (
                 <div className="text-center py-12">
                   <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Star size={40} className="text-white" />

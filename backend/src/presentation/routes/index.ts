@@ -58,6 +58,15 @@ router.get("/ai/expenses", authMiddleware, (req, res, next) =>
 router.post("/ai/wise-score", authMiddleware, (req, res, next) =>
   aiController.computeWiseScore(req, res, next),
 );
+router.post("/ai/financial-tips", authMiddleware, (req, res, next) =>
+  aiController.generateFinancialTips(req, res, next),
+);
+router.post("/ai/goals/socratic-suggestion", authMiddleware, (req, res, next) =>
+  aiController.generateSocraticGoalSuggestion(req, res, next),
+);
+router.post("/ai/financial-literacy-questions", authMiddleware, (req, res, next) =>
+  aiController.generateFinancialLiteracyQuestions(req, res, next),
+);
 
 // Analytics (auth required)
 router.get("/ai/analytics/summary", authMiddleware, (req, res, next) =>

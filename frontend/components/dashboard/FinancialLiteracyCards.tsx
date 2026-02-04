@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import QuizModal from './QuizModal';
 import { QUIZ_DATA } from './quizData';
+import { generateFinancialLiteracyQuestions } from '@/services/financialLiteracyService';
+import type { QuizQuestion } from './QuizModal';
 
 const LITERACY_CARDS = [
   {
@@ -146,21 +148,48 @@ const LITERACY_CARDS = [
 export default function FinancialLiteracyCards() {
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
-  const handleCardClick = (cardId: number) => {
+  const handleCardClick = async (cardId: number) => {
+    const card = LITERACY_CARDS.find((c) => c.id === cardId);
+    if (!card) return;
     setSelectedCard(cardId);
+    setIsLoadingQuestions(true);
+    setQuizQuestions([]);
     setIsQuizOpen(true);
+
+    try {
+      const questions = await generateFinancialLiteracyQuestions(
+        card.title,
+        card.category
+      );
+      setQuizQuestions(
+        questions.map((q) => ({
+          id: q.id,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+        }))
+      );
+    } catch {
+      setQuizQuestions(QUIZ_DATA[cardId] ?? []);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   };
 
   const handleCloseQuiz = () => {
     setIsQuizOpen(false);
     setTimeout(() => {
       setSelectedCard(null);
+      setQuizQuestions([]);
     }, 300);
   };
 
   const selectedCardData = selectedCard ? LITERACY_CARDS.find(card => card.id === selectedCard) : null;
-  const quizQuestions = selectedCard && QUIZ_DATA[selectedCard] ? QUIZ_DATA[selectedCard] : [];
+  const hasQuestions = quizQuestions.length > 0;
 
   return (
     <div className="mb-8">
@@ -221,6 +250,7 @@ export default function FinancialLiteracyCards() {
             </div>
           }
           questions={quizQuestions}
+          isLoading={isLoadingQuestions}
         />
       )}
     </div>

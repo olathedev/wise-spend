@@ -5,25 +5,35 @@ import Header from "@/components/layout/Header";
 import GoalCard from "@/components/goals/GoalCard";
 import SummaryCard from "@/components/goals/SummaryCard";
 import AddGoalModal from "@/components/goals/AddGoalModal";
-import { getFinancialAdvice } from "@/components/transactions/services/geminiService";
+import SetTargetModal from "@/components/goals/SetTargetModal";
+import GoalsTimeline from "@/components/goals/GoalsTimeline";
+import SacrificeScore from "@/components/goals/SacrificeScore";
+import CashFlowForecast from "@/components/goals/CashFlowForecast";
+import { generateSocraticSuggestion } from "@/services/goalsService";
 import {
   financialGoalsToGoals,
   defaultSummaryStats,
 } from "@/components/goals/constants";
 import { getCurrentUser, updateProfile } from "@/services/authService";
-import { Goal, SummaryStats } from "@/components/types";
+import { SummaryStats } from "@/components/types";
+import { getExpenses, ExpenseDto } from "@/services/receiptService";
+import { parseAmountFromTitle } from "@/lib/expenseToTransaction";
 
 export default function GoalsPage() {
   const [goalIds, setGoalIds] = useState<string[]>([]);
+  const [goalTargets, setGoalTargets] = useState<Record<string, number>>({});
+  const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
+  const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<string>(
     "Add goals and track spending to get personalized suggestions."
   );
   const [isAdviceLoading, setIsAdviceLoading] = useState(false);
 
-  const goals = financialGoalsToGoals(goalIds);
+  const goals = financialGoalsToGoals(goalIds, goalTargets);
   const stats: SummaryStats = defaultSummaryStats(goals.length);
 
   useEffect(() => {
@@ -31,8 +41,14 @@ export default function GoalsPage() {
       setLoading(true);
       setError(null);
       try {
-        const user = await getCurrentUser();
+        const [user, expensesData] = await Promise.all([
+          getCurrentUser(),
+          getExpenses().catch(() => []),
+        ]);
         setGoalIds(user.financialGoals ?? []);
+        setGoalTargets(user.goalTargets ?? {});
+        setMonthlyIncome(user.monthlyIncome);
+        setExpenses(expensesData);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load goals");
       } finally {
@@ -42,16 +58,123 @@ export default function GoalsPage() {
     load();
   }, []);
 
+  const handleRefreshGoals = async () => {
+    try {
+      const user = await getCurrentUser();
+      setGoalTargets(user.goalTargets ?? {});
+    } catch (e) {
+      console.error("Failed to refresh goals:", e);
+    }
+  };
+
+  // Calculate sacrifice options for enhanced AI suggestions
+  const sacrificeOptions = React.useMemo(() => {
+    if (!monthlyIncome || goals.length === 0 || expenses.length === 0) return [];
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlyExpenses = expenses.filter((exp) => {
+      const date = new Date(exp.createdAt);
+      return (
+        date.getMonth() === currentMonth &&
+        date.getFullYear() === currentYear
+      );
+    });
+
+    const merchantSpending: Record<string, { total: number; count: number }> =
+      {};
+    monthlyExpenses.forEach((exp) => {
+      const amount = parseAmountFromTitle(exp.title, exp.aiDescription);
+      const merchant = exp.title.split(" - ")[0] || "Unknown";
+      if (!merchantSpending[merchant]) {
+        merchantSpending[merchant] = { total: 0, count: 0 };
+      }
+      merchantSpending[merchant].total += amount;
+      merchantSpending[merchant].count += 1;
+    });
+
+    const goalsWithTargets = goals.filter((g) => g.targetAmount > 0);
+    if (goalsWithTargets.length === 0) return [];
+
+    const totalMonthlySavings = monthlyIncome * 0.2;
+    const monthlyContributionPerGoal =
+      totalMonthlySavings / goalsWithTargets.length;
+
+    const options: Array<{
+      id: string;
+      name: string;
+      monthlyAmount: number;
+      impact: Array<{
+        monthsSaved: number;
+        goalId: string;
+        goalName: string;
+      }>;
+    }> = [];
+    Object.entries(merchantSpending).forEach(([merchant, data]) => {
+      const avgAmount = data.total / data.count;
+      const estimatedMonthly = avgAmount * 4;
+
+      if (estimatedMonthly < 20) return;
+
+      const impact = goalsWithTargets.map((goal) => {
+        const remaining = goal.targetAmount - goal.currentAmount;
+        const currentMonths = Math.ceil(remaining / monthlyContributionPerGoal);
+        const newMonthlyContribution =
+          monthlyContributionPerGoal + estimatedMonthly;
+        const newMonths = Math.ceil(remaining / newMonthlyContribution);
+        const monthsSaved = Math.max(0, currentMonths - newMonths);
+
+        return {
+          monthsSaved,
+          goalId: goal.id,
+          goalName: goal.name,
+        };
+      });
+
+      const maxImpact = Math.max(...impact.map((i) => i.monthsSaved));
+      if (maxImpact >= 1) {
+        options.push({
+          id: merchant.toLowerCase().replace(/\s+/g, "-"),
+          name: merchant,
+          monthlyAmount: estimatedMonthly,
+          impact,
+        });
+      }
+    });
+
+    return options
+      .sort((a, b) => {
+        const aMax = Math.max(...a.impact.map((i) => i.monthsSaved));
+        const bMax = Math.max(...b.impact.map((i) => i.monthsSaved));
+        return bMax - aMax;
+      })
+      .slice(0, 3);
+  }, [expenses, goals, monthlyIncome]);
+
   useEffect(() => {
     if (goals.length === 0) return;
     const fetchAdvice = async () => {
       setIsAdviceLoading(true);
-      const advice = await getFinancialAdvice(goals);
-      if (advice) setSuggestion(advice);
-      setIsAdviceLoading(false);
+      try {
+        const advice = await generateSocraticSuggestion(
+          goals,
+          sacrificeOptions,
+          monthlyIncome
+        );
+        if (advice) setSuggestion(advice);
+      } catch (error) {
+        console.error("Failed to generate suggestion:", error);
+        setSuggestion(
+          "Set targets for your goals and add expenses to get personalized suggestions."
+        );
+      } finally {
+        setIsAdviceLoading(false);
+      }
     };
     fetchAdvice();
-  }, [goals]);
+  }, [goals, sacrificeOptions, monthlyIncome]);
 
   const handleAddGoals = async (newIds: string[]) => {
     const updated = [...goalIds, ...newIds].slice(0, 5);
@@ -68,7 +191,7 @@ export default function GoalsPage() {
       <Header />
 
       <div className="mb-8 px-1">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-black mb-2 leading-tight">
           Financial Goals
         </h2>
         <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400">
@@ -113,6 +236,16 @@ export default function GoalsPage() {
         </div>
       </div>
 
+      {/* Enhanced Features Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8">
+        <GoalsTimeline goals={goals} monthlyIncome={monthlyIncome} />
+        <SacrificeScore goals={goals} monthlyIncome={monthlyIncome} />
+      </div>
+
+      <div className="mb-8">
+        <CashFlowForecast />
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 mb-8">
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -123,7 +256,11 @@ export default function GoalsPage() {
             ) : (
               <>
                 {goals.map((goal) => (
-                  <GoalCard key={goal.id} goal={goal} />
+                  <GoalCard
+                    key={goal.id}
+                    goal={goal}
+                    onClick={() => setSelectedGoalId(goal.id)}
+                  />
                 ))}
 
                 <button
@@ -219,6 +356,16 @@ export default function GoalsPage() {
           currentGoalIds={goalIds}
           onClose={() => setIsAddModalOpen(false)}
           onAdd={handleAddGoals}
+        />
+      )}
+
+      {selectedGoalId && (
+        <SetTargetModal
+          isOpen={!!selectedGoalId}
+          onClose={() => setSelectedGoalId(null)}
+          goalId={selectedGoalId}
+          currentTarget={goalTargets[selectedGoalId]}
+          onSuccess={handleRefreshGoals}
         />
       )}
     </>

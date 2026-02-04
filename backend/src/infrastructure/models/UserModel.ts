@@ -9,6 +9,7 @@ export interface IUserDocument extends Document {
   onboardingCompleted: boolean;
   monthlyIncome?: number;
   financialGoals?: string[];
+  goalTargets?: Map<string, number>;
   coachPersonality?: string;
   wiseScore?: number;
   wiseScoreUpdatedAt?: Date;
@@ -50,6 +51,7 @@ const UserSchema = new Schema<IUserDocument>(
     },
     monthlyIncome: { type: Number, required: false },
     financialGoals: { type: [String], default: undefined, required: false },
+    goalTargets: { type: Map, of: Number, default: undefined, required: false },
     coachPersonality: { type: String, required: false },
     wiseScore: { type: Number, required: false },
     wiseScoreUpdatedAt: { type: Date, required: false },
