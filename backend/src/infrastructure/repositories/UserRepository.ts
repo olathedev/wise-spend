@@ -51,6 +51,14 @@ export class UserRepository implements IUserRepository {
       wiseScore: entity.wiseScore,
       wiseScoreUpdatedAt: entity.wiseScoreUpdatedAt,
       wiseScoreTier: entity.wiseScoreTier,
+      primaryGoalId: entity.primaryGoalId,
+      goalDeadlines: entity.goalDeadlines ? new Map(Object.entries(entity.goalDeadlines)) : undefined,
+      weeklyCheckInDay: entity.weeklyCheckInDay,
+      lastWeeklyCheckInAt: entity.lastWeeklyCheckInAt,
+      currentCommitment: entity.currentCommitment,
+      commitmentCreatedAt: entity.commitmentCreatedAt,
+      lastAccountabilityCheckInAt: entity.lastAccountabilityCheckInAt,
+      lastCelebratedMilestone: entity.lastCelebratedMilestone,
     });
 
     const saved = await document.save();
@@ -67,6 +75,11 @@ export class UserRepository implements IUserRepository {
     if (entity.goalTargets !== undefined) {
       updateData.goalTargets = entity.goalTargets
         ? new Map(Object.entries(entity.goalTargets))
+        : undefined;
+    }
+    if (entity.goalDeadlines !== undefined) {
+      updateData.goalDeadlines = entity.goalDeadlines
+        ? new Map(Object.entries(entity.goalDeadlines))
         : undefined;
     }
     

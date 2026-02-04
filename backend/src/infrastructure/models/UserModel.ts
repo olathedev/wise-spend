@@ -14,6 +14,14 @@ export interface IUserDocument extends Document {
   wiseScore?: number;
   wiseScoreUpdatedAt?: Date;
   wiseScoreTier?: string;
+  primaryGoalId?: string;
+  goalDeadlines?: Map<string, string>;
+  weeklyCheckInDay?: number;
+  lastWeeklyCheckInAt?: Date;
+  currentCommitment?: string;
+  commitmentCreatedAt?: Date;
+  lastAccountabilityCheckInAt?: Date;
+  lastCelebratedMilestone?: number;
   createdAt: Date;
   updatedAt: Date;
 }

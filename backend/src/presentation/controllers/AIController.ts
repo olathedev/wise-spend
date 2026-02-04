@@ -6,9 +6,13 @@ import { ComputeWiseScoreUseCase } from '@application/use-cases/ComputeWiseScore
 import { GenerateFinancialTipsUseCase, GenerateFinancialTipsRequest } from '@application/use-cases/GenerateFinancialTipsUseCase';
 import { GenerateSocraticGoalSuggestionUseCase, GenerateSocraticGoalSuggestionRequest } from '@application/use-cases/GenerateSocraticGoalSuggestionUseCase';
 import { GenerateFinancialLiteracyQuestionsUseCase, GenerateFinancialLiteracyQuestionsRequest } from '@application/use-cases/GenerateFinancialLiteracyQuestionsUseCase';
+import { GenerateWeeklyCheckInUseCase } from '@application/use-cases/GenerateWeeklyCheckInUseCase';
+import { SaveCommitmentUseCase } from '@application/use-cases/SaveCommitmentUseCase';
+import { GenerateAccountabilityCheckInUseCase } from '@application/use-cases/GenerateAccountabilityCheckInUseCase';
+import { CheckMilestoneCelebrationUseCase } from '@application/use-cases/CheckMilestoneCelebrationUseCase';
 import { ChatRequest } from '@domain/interfaces/IAIService';
 import { AuthRequest } from '@presentation/middleware/authMiddleware';
-import { UnauthorizedError } from '@shared/errors/AppError';
+import { UnauthorizedError, ValidationError } from '@shared/errors/AppError';
 
 export class AIController extends BaseController {
   async generateText(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -89,5 +93,38 @@ export class AIController extends BaseController {
     };
     const useCase = new GenerateFinancialLiteracyQuestionsUseCase();
     await this.executeUseCase(useCase, request, res, next);
+  }
+
+  async generateWeeklyCheckIn(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const useCase = new GenerateWeeklyCheckInUseCase();
+    await this.executeUseCase(useCase, { userId }, res, next);
+  }
+
+  async saveCommitment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const commitment = req.body.commitment;
+    if (!commitment || typeof commitment !== 'string' || !commitment.trim()) {
+      return next(new ValidationError('Commitment is required'));
+    }
+    const useCase = new SaveCommitmentUseCase();
+    await this.executeUseCase(useCase, { userId, commitment: commitment.trim() }, res, next);
+  }
+
+  async generateAccountabilityCheckIn(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const useCase = new GenerateAccountabilityCheckInUseCase();
+    await this.executeUseCase(useCase, { userId }, res, next);
+  }
+
+  async checkMilestoneCelebration(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const currentSavedAmount = Number(req.body.currentSavedAmount) || 0;
+    const useCase = new CheckMilestoneCelebrationUseCase();
+    await this.executeUseCase(useCase, { userId, currentSavedAmount }, res, next);
   }
 }

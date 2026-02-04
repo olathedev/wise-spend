@@ -126,6 +126,9 @@ export interface UpdateProfileRequest {
   monthlyIncome?: number;
   financialGoals?: string[];
   goalTargets?: Record<string, number>;
+  goalDeadlines?: Record<string, string>;
+  primaryGoalId?: string | null;
+  weeklyCheckInDay?: number;
   coachPersonality?: string;
 }
 

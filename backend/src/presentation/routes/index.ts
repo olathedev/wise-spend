@@ -67,6 +67,18 @@ router.post("/ai/goals/socratic-suggestion", authMiddleware, (req, res, next) =>
 router.post("/ai/financial-literacy-questions", authMiddleware, (req, res, next) =>
   aiController.generateFinancialLiteracyQuestions(req, res, next),
 );
+router.post("/ai/weekly-check-in", authMiddleware, (req, res, next) =>
+  aiController.generateWeeklyCheckIn(req, res, next),
+);
+router.post("/ai/commitment", authMiddleware, (req, res, next) =>
+  aiController.saveCommitment(req, res, next),
+);
+router.post("/ai/accountability-check-in", authMiddleware, (req, res, next) =>
+  aiController.generateAccountabilityCheckIn(req, res, next),
+);
+router.post("/ai/milestone/check", authMiddleware, (req, res, next) =>
+  aiController.checkMilestoneCelebration(req, res, next),
+);
 
 // Analytics (auth required)
 router.get("/ai/analytics/summary", authMiddleware, (req, res, next) =>

@@ -33,6 +33,7 @@ const SECTION_ICONS: Record<string, string> = {
   verdict: "gavel",
   suggestions: "lightbulb",
   summary: "summarize",
+  reflection: "psychology",
 };
 
 function getSectionIcon(title: string): string {

@@ -5,6 +5,7 @@ import { CompleteOnboardingUseCase } from "@application/use-cases/CompleteOnboar
 import { RefreshTokenUseCase } from "@application/use-cases/RefreshTokenUseCase";
 import { AuthRequest } from "@presentation/middleware/authMiddleware";
 import { UnauthorizedError, NotFoundError, ValidationError } from "@shared/errors/AppError";
+import { User } from "@domain/entities/User";
 import { UserRepository } from "@infrastructure/repositories/UserRepository";
 
 export class AuthController extends BaseController {
@@ -72,7 +73,7 @@ export class AuthController extends BaseController {
     if (!userId) {
       return next(new UnauthorizedError("Unauthorized"));
     }
-    const { monthlyIncome, financialGoals, coachPersonality, goalTargets } = req.body;
+    const { monthlyIncome, financialGoals, coachPersonality, goalTargets, primaryGoalId, goalDeadlines, weeklyCheckInDay } = req.body;
     const userRepo = new UserRepository();
 
     try {
@@ -143,13 +144,27 @@ export class AuthController extends BaseController {
       if (coachPersonality !== undefined) {
         updates.coachPersonality = coachPersonality ?? "";
       }
-      
-   
-      
+      if (primaryGoalId !== undefined) {
+        updates.primaryGoalId = typeof primaryGoalId === "string" && primaryGoalId.trim() ? primaryGoalId.trim() : null;
+      }
+      if (goalDeadlines !== undefined && typeof goalDeadlines === "object" && !Array.isArray(goalDeadlines)) {
+        const validated: Record<string, string> = {};
+        for (const [key, value] of Object.entries(goalDeadlines)) {
+          if (typeof key === "string" && typeof value === "string") {
+            validated[key] = value;
+          }
+        }
+        updates.goalDeadlines = validated;
+      }
+      if (weeklyCheckInDay !== undefined) {
+        const day = Number(weeklyCheckInDay);
+        updates.weeklyCheckInDay = Number.isFinite(day) && day >= 0 && day <= 6 ? day : 0;
+      }
+
       if (Object.keys(updates).length === 0) {
         return next(new ValidationError("No valid fields to update"));
       }
-      const updated = await userRepo.update(userId, updates as { monthlyIncome?: number; financialGoals?: string[]; goalTargets?: Record<string, number>; coachPersonality?: string });
+      const updated = await userRepo.update(userId, updates as Partial<User>);
       if (!updated) {
         return next(new NotFoundError("User not found"));
       }
@@ -165,6 +180,9 @@ export class AuthController extends BaseController {
           monthlyIncome: updated.monthlyIncome ?? null,
           financialGoals: updated.financialGoals ?? null,
           goalTargets: updated.goalTargets ?? null,
+          primaryGoalId: updated.primaryGoalId ?? null,
+          goalDeadlines: updated.goalDeadlines ?? null,
+          weeklyCheckInDay: updated.weeklyCheckInDay ?? null,
           coachPersonality: updated.coachPersonality ?? null,
           wiseScore: updated.wiseScore ?? null,
           wiseScoreUpdatedAt: updated.wiseScoreUpdatedAt ?? null,
@@ -205,6 +223,9 @@ export class AuthController extends BaseController {
           monthlyIncome: user.monthlyIncome ?? null,
           financialGoals: user.financialGoals ?? null,
           goalTargets: user.goalTargets ?? null,
+          primaryGoalId: user.primaryGoalId ?? null,
+          goalDeadlines: user.goalDeadlines ?? null,
+          weeklyCheckInDay: user.weeklyCheckInDay ?? null,
           coachPersonality: user.coachPersonality ?? null,
           wiseScore: user.wiseScore ?? null,
           wiseScoreUpdatedAt: user.wiseScoreUpdatedAt ?? null,

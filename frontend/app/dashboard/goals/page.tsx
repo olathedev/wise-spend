@@ -22,6 +22,8 @@ import { parseAmountFromTitle } from "@/lib/expenseToTransaction";
 export default function GoalsPage() {
   const [goalIds, setGoalIds] = useState<string[]>([]);
   const [goalTargets, setGoalTargets] = useState<Record<string, number>>({});
+  const [goalDeadlines, setGoalDeadlines] = useState<Record<string, string>>({});
+  const [primaryGoalId, setPrimaryGoalId] = useState<string | null>(null);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [expenses, setExpenses] = useState<ExpenseDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,8 @@ export default function GoalsPage() {
         ]);
         setGoalIds(user.financialGoals ?? []);
         setGoalTargets(user.goalTargets ?? {});
+        setGoalDeadlines(user.goalDeadlines ?? {});
+        setPrimaryGoalId(user.primaryGoalId ?? null);
         setMonthlyIncome(user.monthlyIncome);
         setExpenses(expensesData);
       } catch (e) {
@@ -62,6 +66,8 @@ export default function GoalsPage() {
     try {
       const user = await getCurrentUser();
       setGoalTargets(user.goalTargets ?? {});
+      setGoalDeadlines(user.goalDeadlines ?? {});
+      setPrimaryGoalId(user.primaryGoalId ?? null);
     } catch (e) {
       console.error("Failed to refresh goals:", e);
     }
@@ -365,6 +371,8 @@ export default function GoalsPage() {
           onClose={() => setSelectedGoalId(null)}
           goalId={selectedGoalId}
           currentTarget={goalTargets[selectedGoalId]}
+          currentDeadline={goalDeadlines[selectedGoalId]}
+          currentPrimary={primaryGoalId === selectedGoalId}
           onSuccess={handleRefreshGoals}
         />
       )}

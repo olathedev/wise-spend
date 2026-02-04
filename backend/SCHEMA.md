@@ -25,6 +25,14 @@ This document describes the MongoDB collections and their schemas for the WiseSp
   wiseScore?: number,
   wiseScoreUpdatedAt?: Date,
   wiseScoreTier?: string,
+  primaryGoalId?: string,
+  goalDeadlines?: Map<string, string>,
+  weeklyCheckInDay?: number (0-6, 0=Sunday),
+  lastWeeklyCheckInAt?: Date,
+  currentCommitment?: string,
+  commitmentCreatedAt?: Date,
+  lastAccountabilityCheckInAt?: Date,
+  lastCelebratedMilestone?: number,
   createdAt: Date (auto),
   updatedAt: Date (auto)
 }
