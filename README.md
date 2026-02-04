@@ -169,6 +169,61 @@ We ask: *"Is that $6.50 latte worth 15 minutes of your future retirement?"*
 - **Transaction History**: All scanned receipts with insights
 - **Analytics**: Spending patterns, trends, and predictions
 
+### 🎓 Gamified Financial Learning (AI-Curated)
+**Learn financial concepts through interactive quizzes.**
+
+- **12 Financial Literacy Topics**: Covering budgeting, investing, debt management, and more
+  - The 50/30/20 Rule
+  - Compound Growth
+  - Inflation vs. Cash
+  - Emergency Fund Basics
+  - Debt Snowball Method
+  - Diversification
+  - Automated Savings
+  - Tax-Advantaged Accounts
+  - Credit Score Basics
+  - ROI Calculation
+  - Budgeting Apps
+  - Financial Goals (SMART framework)
+
+- **Interactive Quiz System**: 
+  - Click any literacy card to start a quiz
+  - Multiple-choice questions with explanations
+  - Progress tracking and completion rewards
+  - AI-curated content tailored to your financial profile
+
+- **Gamification Elements**:
+  - Visual progress indicators
+  - Completion celebrations
+  - Topic-based learning paths
+  - Knowledge reinforcement through repetition
+
+### 💼 Investment Opportunity Curation
+**AI-powered investment suggestions based on real market data.**
+
+- **Real-Time Market Data**: Powered by Alpha Vantage API
+  - Live stock prices and ETF quotes
+  - Daily change percentages
+  - Market trends and top gainers
+
+- **Curated Investment Opportunities**:
+  - **ETFs**: SPY (S&P 500), VTI (Total Stock Market), VEA (International), BND (Bonds), VNQ (Real Estate)
+  - **Major Stocks**: Apple, Microsoft, Alphabet, and more
+  - **Risk Assessment**: Low, Medium, Medium-High risk classifications
+  - **Minimum Investment**: Shows accessible entry points ($1+)
+
+- **Smart Filtering**:
+  - Filters by investment type (ETF, Stock, Bond, REIT)
+  - Sorted by performance and risk level
+  - Educational descriptions for each opportunity
+  - Sector information and market insights
+
+- **Safety Features**:
+  - ModerationMetric ensures no high-risk suggestions
+  - Educational disclaimers
+  - Encourages consultation with financial advisors
+  - Past performance disclaimers
+
 ### 🔄 Agent Optimization (Opik Agent Optimizer)
 **Continuously improving prompts.**
 
@@ -339,6 +394,21 @@ Frontend runs on `http://localhost:3000`
 3. **Visual progress**: "You're 2 weeks closer to your goal!"
 4. **Motivation**: Seeing real progress encourages continued saving
 
+### Scenario 4: Gamified Learning
+
+1. **User browses Financial Literacy Cards** → Sees 12 topics
+2. **Clicks "The 50/30/20 Rule"** → Quiz modal opens
+3. **Completes quiz** → Learns budgeting fundamentals
+4. **Progress tracked** → Can revisit topics anytime
+
+### Scenario 5: Investment Discovery
+
+1. **User navigates to Grow page** → Switches to "Investment Suggestions" tab
+2. **Sees curated opportunities** → ETFs, stocks with real-time data
+3. **Reviews risk levels** → Low, Medium, Medium-High classifications
+4. **Reads descriptions** → Educational content for each opportunity
+5. **Makes informed decision** → With full context and disclaimers
+
 ---
 
 ## 🏆 Why This Wins
@@ -352,6 +422,8 @@ Frontend runs on `http://localhost:3000`
 | ✅ **Production Ready** | Error handling, graceful shutdown, comprehensive logging |
 | ✅ **Novel Use Case** | Multimodal receipt analysis with goal impact calculation |
 | ✅ **User Value** | Transforms "financial fog" into actionable insights |
+| ✅ **Gamified Learning** | 🎓 Interactive financial literacy quizzes (12 topics) |
+| ✅ **Investment Curation** | 💼 Real-time investment opportunities with market data |
 | ✅ **Full Stack** | Next.js frontend, Express backend, MongoDB, Cloudinary |
 | ✅ **Authentication** | Google OAuth via NextAuth, protected routes |
 
@@ -381,19 +453,26 @@ frontend/
 │   ├── dashboard/
 │   │   ├── page.tsx                     # 📊 Main dashboard
 │   │   ├── transactions/page.tsx        # 📝 Transaction history
-│   │   ├── analytics/page.tsx            # 📈 Spending analytics
+│   │   ├── analytics/page.tsx           # 📈 Spending analytics
+│   │   ├── goals/page.tsx               # 🎯 Financial goals
+│   │   ├── grow/page.tsx                # 🌱 Grow page (Knowledge + Investments)
 │   │   └── ai-coach/page.tsx            # 🤔 Socratic coach chat
 │   └── scan/page.tsx                    # 📸 Receipt scanning
 ├── components/
 │   ├── dashboard/
 │   │   ├── FinancialSummaryCards.tsx   # Summary cards
 │   │   ├── SocraticCoach.tsx            # Coach insights
-│   │   └── TransactionList.tsx         # Recent transactions
+│   │   ├── TransactionList.tsx          # Recent transactions
+│   │   ├── FinancialLiteracyCards.tsx   # 🎓 Gamified learning cards
+│   │   ├── QuizModal.tsx                # 📝 Interactive quiz component
+│   │   ├── InvestmentSuggestions.tsx    # 💼 Investment opportunities
+│   │   └── FinancialInsights.tsx        # 💡 AI-generated insights
 │   └── receipt/
 │       └── AnalysisResultModal.tsx      # Receipt analysis results
 └── services/
     ├── receiptService.ts                 # Receipt API calls
-    └── aiService.ts                      # AI chat API calls
+    ├── aiService.ts                      # AI chat API calls
+    └── investmentService.ts              # 💼 Investment data (Alpha Vantage)
 ```
 
 ---
