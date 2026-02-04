@@ -53,8 +53,7 @@ export class GenerateFinancialTipsUseCase
     const prompt = buildFinancialTipsPrompt(request.topic, request.category);
 
     const aiService = getAIService();
-    const response = await aiService.generateText({
-      prompt,
+    const content = await aiService.generateText(prompt, {
       temperature: 0.7,
       maxTokens: 2000,
     });
@@ -62,7 +61,7 @@ export class GenerateFinancialTipsUseCase
     // Parse JSON response from AI
     try {
       // Try to extract JSON from the response (AI might wrap it in markdown code blocks)
-      let jsonStr = response.content.trim();
+      let jsonStr = content.trim();
       
       // Remove markdown code blocks if present
       if (jsonStr.startsWith("```json")) {
@@ -97,9 +96,9 @@ export class GenerateFinancialTipsUseCase
       console.error("Failed to parse AI response as JSON:", error);
       
       // Fallback: create tips from the raw text
-      const paragraphs = response.content
+      const paragraphs = content
         .split(/\n\n+/)
-        .filter((p) => p.trim().length > 50);
+        .filter((p: string) => p.trim().length > 50);
 
       if (paragraphs.length === 0) {
         throw new Error("Failed to generate financial tips");

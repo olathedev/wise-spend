@@ -89,14 +89,13 @@ export class GenerateSocraticGoalSuggestionUseCase
     );
 
     const aiService = getAIService();
-    const response = await aiService.generateText({
-      prompt,
+    const content = await aiService.generateText(prompt, {
       temperature: 0.7,
       maxTokens: 150,
     });
 
     return {
-      suggestion: response.content.trim(),
+      suggestion: content.trim(),
     };
   }
 }
