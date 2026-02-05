@@ -4,6 +4,7 @@ import { AIController } from "@presentation/controllers/AIController";
 import { AuthController } from "@presentation/controllers/AuthController";
 import { ReceiptController } from "@presentation/controllers/ReceiptController";
 import { AnalyticsController } from "@presentation/controllers/AnalyticsController";
+import { QuizController } from "@presentation/controllers/QuizController";
 import { authMiddleware } from "@presentation/middleware/authMiddleware";
 
 const router = Router();
@@ -11,6 +12,7 @@ const aiController = new AIController();
 const authController = new AuthController();
 const receiptController = new ReceiptController();
 const analyticsController = new AnalyticsController();
+const quizController = new QuizController();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -44,6 +46,10 @@ router.post("/ai/generate", (req, res, next) =>
   aiController.generateText(req, res, next),
 );
 router.post("/ai/chat", (req, res, next) => aiController.chat(req, res, next));
+// Financial Assistant Chat - Personalized Socratic coaching with user context
+router.post("/ai/assistant/chat", authMiddleware, (req, res, next) =>
+  aiController.assistantChat(req, res, next),
+);
 
 // Receipt analysis (image upload + Gemini analysis; requires auth)
 router.post(
@@ -89,6 +95,20 @@ router.get("/ai/analytics/heatmap", authMiddleware, (req, res, next) =>
 );
 router.get("/ai/analytics/behavioral", authMiddleware, (req, res, next) =>
   analyticsController.getBehavioral(req, res, next),
+);
+
+// Quiz Routes (auth required)
+router.post("/quiz/generate", authMiddleware, (req, res, next) =>
+  quizController.generateQuizzes(req, res, next),
+);
+router.get("/quiz", authMiddleware, (req, res, next) =>
+  quizController.getQuizzes(req, res, next),
+);
+router.post("/quiz/:quizId/complete", authMiddleware, (req, res, next) =>
+  quizController.completeQuiz(req, res, next),
+);
+router.delete("/quiz/all", authMiddleware, (req, res, next) =>
+  quizController.deleteAllQuizzes(req, res, next),
 );
 
 export { router as routes };

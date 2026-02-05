@@ -30,3 +30,7 @@ export const getAIService = (): IAIService => {
 
 export { IAIService } from '@domain/interfaces/IAIService';
 export { OpikService, getOpikService } from './OpikService';
+export { FinancialAssistantAgent } from './FinancialAssistantAgent';
+export type { UserFinancialContext } from './FinancialAssistantAgent';
+export { QuizCuratorAgent } from './QuizCuratorAgent';
+export type { UserFinancialContext as QuizUserFinancialContext } from './QuizCuratorAgent';

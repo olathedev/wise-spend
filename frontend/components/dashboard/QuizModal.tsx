@@ -19,22 +19,24 @@ interface QuizModalProps {
   topicIcon: React.ReactNode;
   questions: QuizQuestion[];
   isLoading?: boolean;
+  onComplete?: (answers: number[]) => void | Promise<void>;
 }
 
-export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false }: QuizModalProps) {
+export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false, onComplete }: QuizModalProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
+  const [answers, setAnswers] = useState<number[]>([]); 
   const [isComplete, setIsComplete] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Shuffle questions and take 10 random ones
+  // Use all questions (don't shuffle/limit for backend quizzes)
   const shuffledQuestions = React.useMemo(() => {
     if (!questions || questions.length === 0) return [];
-    const shuffled = [...questions].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 10);
+    return questions; // Use all questions as provided
   }, [questions]);
 
   useEffect(() => {
@@ -44,10 +46,12 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
       setShowExplanation(false);
       setScore(0);
       setAnsweredQuestions([]);
+      setAnswers(new Array(questions.length).fill(-1));
       setIsComplete(false);
       setHasStarted(false);
+      setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, questions.length]);
 
   const handleStart = () => {
     setHasStarted(true);
@@ -56,6 +60,10 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
   const handleAnswerSelect = (answerIndex: number) => {
     if (showExplanation) return;
     setSelectedAnswer(answerIndex);
+    // Update answers array immediately
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = answerIndex;
+    setAnswers(newAnswers);
   };
 
   const handleSubmitAnswer = () => {
@@ -64,21 +72,97 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
     const currentQuestion = shuffledQuestions[currentQuestionIndex];
     const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
     
-    if (isCorrect) {
-      setScore(score + 1);
+    // Update answers array - ensure we're using the correct index
+    const newAnswers = [...answers];
+    const previousAnswer = newAnswers[currentQuestionIndex];
+    newAnswers[currentQuestionIndex] = selectedAnswer;
+    setAnswers(newAnswers);
+    
+    // Update score - if this question was already answered, adjust score accordingly
+    let newScore = score;
+    if (previousAnswer !== -1 && previousAnswer !== undefined) {
+      // Question was already answered, check if previous answer was correct
+      const previousQuestion = shuffledQuestions[currentQuestionIndex];
+      const wasPreviousCorrect = previousQuestion.correctAnswer === previousAnswer;
+      if (wasPreviousCorrect) {
+        newScore = Math.max(0, newScore - 1); // Remove previous correct score
+      }
     }
-
-    setAnsweredQuestions([...answeredQuestions, isCorrect]);
+    
+    // Add current answer's score
+    if (isCorrect) {
+      newScore = newScore + 1;
+    }
+    
+    setScore(newScore);
+    
+    // Update answered questions array
+    const newAnsweredQuestions = [...answeredQuestions];
+    if (currentQuestionIndex < newAnsweredQuestions.length) {
+      newAnsweredQuestions[currentQuestionIndex] = isCorrect;
+    } else {
+      newAnsweredQuestions.push(isCorrect);
+    }
+    setAnsweredQuestions(newAnsweredQuestions);
+    
     setShowExplanation(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < shuffledQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedAnswer(null);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      // Restore previously selected answer if exists
+      setSelectedAnswer(answers[nextIndex] !== -1 && answers[nextIndex] !== undefined ? answers[nextIndex] : null);
       setShowExplanation(false);
     } else {
       setIsComplete(true);
+      // Submit answers to backend if callback provided
+      if (onComplete) {
+        setIsSubmitting(true);
+        try {
+          // Ensure answers array matches questions length and has no undefined values
+          const finalAnswers = answers.map((ans, idx) => {
+            if (ans === -1 || ans === undefined || ans === null) {
+              console.warn(`Question ${idx + 1} was not answered, defaulting to 0`);
+              return 0; // Default to first option if not answered
+            }
+            return ans;
+          });
+          
+          // Validate answers array length matches questions length
+          if (finalAnswers.length !== shuffledQuestions.length) {
+            console.error('Answers array length mismatch:', {
+              answersLength: finalAnswers.length,
+              questionsLength: shuffledQuestions.length,
+            });
+            // Pad or trim to match
+            while (finalAnswers.length < shuffledQuestions.length) {
+              finalAnswers.push(0);
+            }
+            finalAnswers.splice(shuffledQuestions.length);
+          }
+          
+          console.log('Submitting quiz answers:', {
+            answers: finalAnswers,
+            questionsCount: shuffledQuestions.length,
+            answersCount: finalAnswers.length,
+            questionCorrectAnswers: shuffledQuestions.map((q, i) => ({
+              index: i,
+              correctAnswer: q.correctAnswer,
+              userAnswer: finalAnswers[i],
+              isCorrect: q.correctAnswer === finalAnswers[i],
+            })),
+          });
+          
+          await onComplete(finalAnswers);
+        } catch (error) {
+          console.error('Error submitting quiz:', error);
+          alert('Failed to save quiz results. Please try again.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
     }
   };
 
@@ -99,7 +183,6 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
 
   const currentQuestion = shuffledQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + (showExplanation ? 1 : 0)) / shuffledQuestions.length) * 100;
-  const scorePercentage = Math.round((score / shuffledQuestions.length) * 100);
 
   return (
     <AnimatePresence>
@@ -196,6 +279,19 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
                         const isSelected = selectedAnswer === index;
                         const isCorrect = index === currentQuestion.correctAnswer;
                         const showResult = showExplanation;
+                        
+                        // Debug logging
+                        if (showResult && isSelected) {
+                          console.log('Answer check:', {
+                            questionIndex: currentQuestionIndex,
+                            selectedIndex: index,
+                            correctIndex: currentQuestion.correctAnswer,
+                            isCorrect,
+                            question: currentQuestion.question.substring(0, 50),
+                            selectedOption: option,
+                            correctOption: currentQuestion.options[currentQuestion.correctAnswer],
+                          });
+                        }
 
                         return (
                           <button
@@ -249,40 +345,62 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6"
-                  >
-                    <Trophy size={48} className="text-white" />
-                  </motion.div>
-                  <h3 className="text-3xl font-bold text-slate-900 mb-2">Quiz Complete!</h3>
-                  <div className="mb-8">
-                    <div className="text-5xl font-bold text-teal-600 mb-2">
-                      {score}/{shuffledQuestions.length}
-                    </div>
-                    <div className="text-xl font-semibold text-slate-600">
-                      {scorePercentage}% Score
-                    </div>
-                    <div className="mt-4">
-                      {scorePercentage >= 80 ? (
-                        <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full font-bold">
-                          Excellent! 🌟
-                        </span>
-                      ) : scorePercentage >= 60 ? (
-                        <span className="inline-block px-4 py-2 bg-teal-100 text-teal-700 rounded-full font-bold">
-                          Good Job! 👍
-                        </span>
-                      ) : (
-                        <span className="inline-block px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-bold">
-                          Keep Learning! 📚
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-slate-600 mb-8">
-                    You've completed the {topicTitle} quiz. Great work on expanding your financial knowledge!
-                  </p>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={48} className="animate-spin text-teal-500 mx-auto mb-6" />
+                      <h3 className="text-xl font-bold text-slate-900 mb-2">Saving Results...</h3>
+                      <p className="text-slate-600">Please wait while we save your quiz results.</p>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6"
+                      >
+                        <Trophy size={48} className="text-white" />
+                      </motion.div>
+                      <h3 className="text-3xl font-bold text-slate-900 mb-2">Quiz Complete!</h3>
+                      <div className="mb-8">
+                        {/* Recalculate score from answers to ensure accuracy */}
+                        {(() => {
+                          const finalScore = shuffledQuestions.reduce((acc, q, idx) => {
+                            const userAnswer = answers[idx];
+                            return acc + (userAnswer === q.correctAnswer ? 1 : 0);
+                          }, 0);
+                          const finalPercentage = Math.round((finalScore / shuffledQuestions.length) * 100);
+                          return (
+                            <>
+                              <div className="text-5xl font-bold text-teal-600 mb-2">
+                                {finalScore}/{shuffledQuestions.length}
+                              </div>
+                              <div className="text-xl font-semibold text-slate-600">
+                                {finalPercentage}% Score
+                              </div>
+                              <div className="mt-4">
+                                {finalPercentage >= 80 ? (
+                                  <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full font-bold">
+                                    Excellent! 🌟
+                                  </span>
+                                ) : finalPercentage >= 60 ? (
+                                  <span className="inline-block px-4 py-2 bg-teal-100 text-teal-700 rounded-full font-bold">
+                                    Good Job! 👍
+                                  </span>
+                                ) : (
+                                  <span className="inline-block px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-bold">
+                                    Keep Learning! 📚
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <p className="text-slate-600 mb-8">
+                        You&apos;ve completed the {topicTitle} quiz. Great work on expanding your financial knowledge!
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

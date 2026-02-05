@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
-import { chatWithAI, ChatMessage } from "@/services/aiService";
+import { chatWithFinancialAssistant, ChatMessage } from "@/services/aiService";
 
 interface AIChatInterfaceProps {
   initialMessage?: string;
@@ -18,7 +18,7 @@ export default function AIChatInterface({
       role: "assistant",
       content:
         initialMessage ||
-        "Hi! I'm your financial growth assistant. Ask me anything about personal finance, investing, budgeting, or financial planning. How can I help you grow your wealth today?",
+        "Hi! I'm Wise Coach, your personalized financial assistant. I have access to your spending history, goals, and financial data. Ask me anything about your finances - like 'How much did I spend this month?' or 'What's my Wise Score?' - and I'll give you personalized, data-driven insights!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -35,24 +35,31 @@ export default function AIChatInterface({
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading) {
+      console.log("HandleSend blocked:", { input: input.trim(), isLoading });
+      return;
+    }
 
     const userMessage: ChatMessage = {
       role: "user",
       content: input.trim(),
     };
 
+    console.log("Sending message:", userMessage);
     setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input.trim();
     setInput("");
     setIsLoading(true);
 
     try {
-      const response = await chatWithAI({
+      console.log("Calling chatWithFinancialAssistant with messages:", [...messages, userMessage]);
+      const response = await chatWithFinancialAssistant({
         messages: [...messages, userMessage],
         temperature: 0.7,
         maxTokens: 1024,
       });
 
+      console.log("Received response:", response);
       setMessages((prev) => [
         ...prev,
         {
@@ -61,13 +68,18 @@ export default function AIChatInterface({
         },
       ]);
     } catch (error) {
-      console.error("Error chatting with AI:", error);
+      console.error("Error chatting with Financial Assistant:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "I'm sorry, I encountered an error. Please try again in a moment.";
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "I'm sorry, I encountered an error. Please try again in a moment.",
+          content: errorMessage.includes("Unauthorized") || errorMessage.includes("401")
+            ? "Please make sure you're logged in to use the Financial Assistant."
+            : errorMessage,
         },
       ]);
     } finally {
@@ -76,9 +88,10 @@ export default function AIChatInterface({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      console.log("Enter key pressed, calling handleSend");
       handleSend();
     }
   };
@@ -138,13 +151,17 @@ export default function AIChatInterface({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask about investing, budgeting, savings..."
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about your spending, goals, Wise Score..."
             className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             disabled={isLoading}
           />
           <button
-            onClick={handleSend}
+            onClick={(e) => {
+              e.preventDefault();
+              console.log("Send button clicked");
+              handleSend();
+            }}
             disabled={!input.trim() || isLoading}
             className="px-4 sm:px-6 py-3 bg-teal-500 text-white rounded-xl hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-semibold"
           >
