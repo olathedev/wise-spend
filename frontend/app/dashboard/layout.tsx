@@ -6,6 +6,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import FloatingActionButton from "@/components/layout/FloatingActionButton";
 import MobileHeader from "@/components/layout/MobileHeader";
 import AICoachModal from "@/components/goals/AICoachModal";
+import DailyAssessmentPopup from "@/components/assessment/DailyAssessmentPopup";
 
 export default function DashboardLayout({
   children,
@@ -36,6 +37,8 @@ export default function DashboardLayout({
         isOpen={isAiCoachOpen}
         onClose={() => setIsAiCoachOpen(false)}
       />
+
+      <DailyAssessmentPopup />
     </div>
   );
 }

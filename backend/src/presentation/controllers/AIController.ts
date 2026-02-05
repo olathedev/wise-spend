@@ -10,6 +10,8 @@ import { GenerateWeeklyCheckInUseCase } from '@application/use-cases/GenerateWee
 import { SaveCommitmentUseCase } from '@application/use-cases/SaveCommitmentUseCase';
 import { GenerateAccountabilityCheckInUseCase } from '@application/use-cases/GenerateAccountabilityCheckInUseCase';
 import { CheckMilestoneCelebrationUseCase } from '@application/use-cases/CheckMilestoneCelebrationUseCase';
+import { GetDailyAssessmentStatusUseCase } from '@application/use-cases/GetDailyAssessmentStatusUseCase';
+import { RecordDailyAssessmentUseCase } from '@application/use-cases/RecordDailyAssessmentUseCase';
 import { ChatRequest } from '@domain/interfaces/IAIService';
 import { AuthRequest } from '@presentation/middleware/authMiddleware';
 import { UnauthorizedError, ValidationError } from '@shared/errors/AppError';
@@ -126,5 +128,24 @@ export class AIController extends BaseController {
     const currentSavedAmount = Number(req.body.currentSavedAmount) || 0;
     const useCase = new CheckMilestoneCelebrationUseCase();
     await this.executeUseCase(useCase, { userId, currentSavedAmount }, res, next);
+  }
+
+  async getDailyAssessmentStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const useCase = new GetDailyAssessmentStatusUseCase();
+    await this.executeUseCase(useCase, { userId }, res, next);
+  }
+
+  async recordDailyAssessment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const status = req.body.status;
+    if (status !== 'completed' && status !== 'skipped') {
+      return next(new ValidationError('status must be "completed" or "skipped"'));
+    }
+    const score = req.body.score != null ? Number(req.body.score) : undefined;
+    const useCase = new RecordDailyAssessmentUseCase();
+    await this.executeUseCase(useCase, { userId, status, score }, res, next);
   }
 }

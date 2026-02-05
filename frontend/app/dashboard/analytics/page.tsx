@@ -11,6 +11,7 @@ import {
   type AnalyticsSummaryDto,
   type AnalyticsBehavioralDto,
 } from "@/services/analyticsService";
+import AssessmentStreakCard from "@/components/analytics/AssessmentStreakCard";
 
 function formatCurrency(amount: number): string {
   return `$${amount.toLocaleString("en-US", {
@@ -183,6 +184,10 @@ export default function AnalyticsPage() {
                   })}
             </div>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <AssessmentStreakCard />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

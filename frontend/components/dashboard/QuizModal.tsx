@@ -19,9 +19,11 @@ interface QuizModalProps {
   topicIcon: React.ReactNode;
   questions: QuizQuestion[];
   isLoading?: boolean;
+  /** Called when user completes the quiz and clicks Close (score, totalQuestions) */
+  onComplete?: (score: number, total: number) => void;
 }
 
-export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false }: QuizModalProps) {
+export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false, onComplete }: QuizModalProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -83,6 +85,9 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
   };
 
   const handleClose = () => {
+    if (isComplete && onComplete) {
+      onComplete(score, shuffledQuestions.length);
+    }
     onClose();
     setTimeout(() => {
       setHasStarted(false);

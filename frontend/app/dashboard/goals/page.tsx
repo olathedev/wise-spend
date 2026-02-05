@@ -229,17 +229,6 @@ export default function GoalsPage() {
           icon="flag"
           color="blue"
         />
-        <div className="sm:col-span-2 lg:col-span-1">
-          <SummaryCard
-            title="Monthly Contribution"
-            value={
-              loading ? "…" : `$${stats.monthlyContribution.toLocaleString()}.00`
-            }
-            subtitle={`Across ${stats.activeGoalsCount} active goals`}
-            icon="payments"
-            color="orange"
-          />
-        </div>
       </div>
 
       {/* Enhanced Features Section */}
@@ -297,62 +286,7 @@ export default function GoalsPage() {
           </div>
         </div>
 
-        {/* Right Sidebar - AI Suggestion */}
-        <div className="w-full lg:w-80">
-          <div className="bg-white dark:bg-card-dark rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5 sm:p-6 sticky top-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-primary">
-                auto_awesome
-              </span>
-              <h4 className="font-bold text-lg text-slate-900 dark:text-white">
-                Socratic Suggestion
-              </h4>
-            </div>
-
-            <div
-              className={`p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 mb-6 transition-opacity ${isAdviceLoading ? "opacity-50" : "opacity-100"}`}
-            >
-              <p className="text-sm italic text-slate-600 dark:text-slate-300 leading-relaxed">
-                &ldquo;{suggestion}&rdquo;
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={handleApplySuggestion}
-                className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-teal-500/20 hover:opacity-90 transition-opacity"
-              >
-                Apply Suggestion
-              </button>
-              <button className="w-full py-3 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                Dismiss
-              </button>
-            </div>
-
-            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-              <h5 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                Optimization Progress
-              </h5>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-primary h-full transition-all duration-1000"
-                    style={{
-                      width: `${goals.length > 0 ? Math.min(100, goals.length * 25) : 0}%`,
-                    }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                  {goals.length > 0 ? Math.min(100, goals.length * 25) : 0}%
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-500 mt-2">
-                {goals.length} goal{goals.length !== 1 ? "s" : ""} set. Set
-                targets to track progress.
-              </p>
-            </div>
-          </div>
-        </div>
+ 
       </div>
 
       <div className="h-8" />

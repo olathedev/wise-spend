@@ -79,6 +79,12 @@ router.post("/ai/accountability-check-in", authMiddleware, (req, res, next) =>
 router.post("/ai/milestone/check", authMiddleware, (req, res, next) =>
   aiController.checkMilestoneCelebration(req, res, next),
 );
+router.get("/ai/daily-assessment/status", authMiddleware, (req, res, next) =>
+  aiController.getDailyAssessmentStatus(req, res, next),
+);
+router.post("/ai/daily-assessment/record", authMiddleware, (req, res, next) =>
+  aiController.recordDailyAssessment(req, res, next),
+);
 
 // Analytics (auth required)
 router.get("/ai/analytics/summary", authMiddleware, (req, res, next) =>

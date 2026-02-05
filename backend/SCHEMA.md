@@ -94,11 +94,36 @@ This document describes the MongoDB collections and their schemas for the WiseSp
 - `bot_id` is calculated: `20231226 + (ObjectId timestamp % 10000)`
 - Only `secret` is stored; full token is generated dynamically
 
+### 4. DailyAssessments Collection
+
+**Model**: `DailyAssessmentModel`
+**Collection Name**: `dailyassessments`
+
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: "User", indexed),
+  date: string (YYYY-MM-DD, indexed),
+  status: "completed" | "skipped",
+  score?: number,
+  createdAt: Date (auto),
+  updatedAt: Date (auto)
+}
+```
+
+**Indexes**:
+- `userId` (indexed)
+- `date` (indexed)
+- Compound: `{ userId: 1, date: 1 }` (unique)
+
+**Notes**: Tracks daily financial literacy quiz completions. Streak = consecutive days with status "completed".
+
 ## Entity Relationships
 
 ```
 User (1) ──< (many) Expense
 User (1) ──< (many) APIKey
+User (1) ──< (many) DailyAssessment
 ```
 
 ## Important Notes
