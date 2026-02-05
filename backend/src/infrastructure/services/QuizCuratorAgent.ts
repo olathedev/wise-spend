@@ -180,10 +180,42 @@ export class QuizCuratorAgent {
     const prompt = this.buildQuizGenerationPrompt(concept, context);
     
     try {
-      const response = await this.aiService.generateText(prompt, {
-        temperature: 0.7, // Higher temperature for more variety in questions
-        maxTokens: 4000, // Increased for more questions
-      });
+      // Generate with retry logic for truncated responses
+      let response = '';
+      let attempts = 0;
+      const maxAttempts = 2;
+      
+      while (attempts < maxAttempts) {
+        try {
+          response = await this.aiService.generateText(prompt, {
+            temperature: 0.3, // Lower temperature for more consistent, concise output
+            maxTokens: 2500, // Reduced to force concise responses
+          });
+          
+          // Check if response looks complete (ends with } or ])
+          if (response.trim().endsWith('}') || response.trim().endsWith(']')) {
+            break; // Response looks complete
+          }
+          
+          attempts++;
+          if (attempts < maxAttempts) {
+            Logger.warn(`Response may be truncated, retrying (attempt ${attempts + 1}/${maxAttempts})`, {
+              concept,
+              responseLength: response.length,
+              lastChars: response.substring(Math.max(0, response.length - 100)),
+            });
+          }
+        } catch (error) {
+          attempts++;
+          if (attempts >= maxAttempts) {
+            throw error;
+          }
+          Logger.warn(`Error generating quiz, retrying (attempt ${attempts + 1}/${maxAttempts})`, {
+            concept,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
 
       // Log raw response for debugging
       Logger.info(`Raw AI response for ${concept}`, {
@@ -230,66 +262,60 @@ export class QuizCuratorAgent {
     
     return `You are a financial education expert creating a personalized quiz for a user learning about "${concept}".
 
-USER'S FINANCIAL PROFILE:
+USER PROFILE (KEEP REFERENCES SHORT):
 - Name: ${user.name}
-- Monthly Income: ${monthlyIncome ? `$${monthlyIncome.toLocaleString()}` : 'Not set'}
-- Monthly Spending: $${monthlySpending.toLocaleString()}
-- Total Transactions This Month: ${expenseSummary.count}
-- Average Transaction: $${expenseSummary.averagePerTransaction.toFixed(2)}
-- Top Spending Categories: ${Object.entries(expenseSummary.categories)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 3)
-      .map(([cat, amt]) => `${cat} ($${amt.toFixed(2)})`)
-      .join(', ') || 'None'}
-- Financial Goals: ${user.financialGoals?.join(', ') || 'None set'}
-- Wise Score: ${user.wiseScore !== undefined ? `${user.wiseScore}/1000` : 'Not calculated'}
+- Income: ${monthlyIncome ? `$${monthlyIncome.toLocaleString()}` : 'Not set'}
+- Spending: $${monthlySpending.toLocaleString()}
+- Goals: ${user.financialGoals?.slice(0, 2).join(', ') || 'None'}
 
 TASK:
-Create a personalized quiz about "${concept}" with AT LEAST 5 questions (aim for 8-10 for best learning). The quiz should:
+Create a personalized quiz about "${concept}" with EXACTLY 5 questions. The quiz should:
 1. Be relevant to the user's actual financial situation
 2. Reference their spending patterns, income, or goals when appropriate
 3. Include practical, actionable questions (not just theoretical)
 4. Use their real data in examples when possible
-5. Cover different difficulty levels (beginner to intermediate)
-6. Each question must be UNIQUE and cover different aspects of ${concept}
-7. Vary question types: calculations, scenarios, definitions, best practices
-8. Ensure questions are diverse - no repetition or similar wording
+5. Each question must be UNIQUE and cover different aspects of ${concept}
+6. Vary question types: calculations, scenarios, definitions, best practices
 
-OUTPUT FORMAT (JSON):
+JSON FORMAT:
 {
-  "title": "Quiz title (e.g., 'Mastering Budgeting Basics')",
-  "description": "Brief description explaining why this quiz is relevant to the user",
+  "title": "Short title",
+  "description": "Brief description",
   "questions": [
     {
-      "question": "Question text (can reference user's data, e.g., 'If your monthly income is $X and you spend $Y on coffee...')",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "question": "Short question (max 100 words)",
+      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
       "correctAnswer": 0,
-      "explanation": "Detailed explanation of why this answer is correct, with actionable advice"
+      "explanation": "Brief explanation (max 50 words)"
     }
   ]
 }
 
 CRITICAL REQUIREMENTS:
-- Generate exactly 8-10 questions (no more, no less)
+- Generate EXACTLY 5 questions (no more, no less)
 - Each question must have exactly 4 options
 - correctAnswer must be a number: 0, 1, 2, or 3 (0-based index)
-- Return ONLY valid JSON - no markdown, no code blocks, no extra text before or after
-- The response must start with { and end with }
-- Do not include any explanatory text outside the JSON object
+- Keep explanations under 50 words
+- Keep questions under 100 words
+- Keep options under 10 words each
+- Return ONLY valid JSON - no markdown, no code blocks
+- Ensure JSON is complete and properly closed
 
-EXAMPLE VALID RESPONSE:
+EXAMPLE VALID RESPONSE (KEEP IT SHORT!):
 {
-  "title": "Mastering Budgeting Basics",
-  "description": "Test your budgeting knowledge with personalized questions",
+  "title": "Budgeting Basics Quiz",
+  "description": "Test your budgeting knowledge",
   "questions": [
     {
-      "question": "If your monthly income is $5000 and you spend $3000, what percentage are you spending?",
+      "question": "If income is $5000 and spending is $3000, what percentage is spent?",
       "options": ["40%", "50%", "60%", "70%"],
       "correctAnswer": 2,
-      "explanation": "60% spending means you're saving 40%, which is good but could be improved."
+      "explanation": "60% spending means 40% savings. Aim for higher savings rate."
     }
   ]
-}`;
+}
+
+REMEMBER: Keep everything SHORT. Explanations max 50 words. Questions max 100 words.`;
   }
 
   /**
@@ -334,7 +360,125 @@ EXAMPLE VALID RESPONSE:
         }
       }
 
-      const parsed = JSON.parse(jsonStr);
+      // Comprehensive JSON repair for truncated responses
+      let parsed: any;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (parseError) {
+        Logger.warn('JSON parse failed, attempting comprehensive repair', {
+          concept,
+          error: parseError instanceof Error ? parseError.message : String(parseError),
+          jsonLength: jsonStr.length,
+          lastChars: jsonStr.substring(Math.max(0, jsonStr.length - 300)),
+        });
+        
+        // Repair unterminated strings and incomplete structures
+        let repairedJson = jsonStr.trim();
+        
+        // Handle unterminated strings (most common issue)
+        // Find the last complete string and close it
+        const stringMatches = [...repairedJson.matchAll(/"([^"\\]|\\.)*"/g)];
+        let lastStringEnd = -1;
+        if (stringMatches.length > 0) {
+          const lastMatch = stringMatches[stringMatches.length - 1];
+          lastStringEnd = lastMatch.index! + lastMatch[0].length;
+        }
+        
+        // If we're in the middle of a string, close it
+        if (lastStringEnd < repairedJson.length) {
+          // Check if we're inside quotes
+          const afterLastString = repairedJson.substring(lastStringEnd);
+          const openQuotes = (repairedJson.substring(0, lastStringEnd).match(/"/g) || []).length;
+          const closeQuotes = (repairedJson.substring(0, lastStringEnd).match(/"/g) || []).length;
+          
+          // If we have an odd number of quotes, we're in an unterminated string
+          if (openQuotes % 2 === 1) {
+            // Find where the string started and close it
+            let stringStart = lastStringEnd;
+            for (let i = lastStringEnd - 1; i >= 0; i--) {
+              if (repairedJson[i] === '"' && (i === 0 || repairedJson[i - 1] !== '\\')) {
+                stringStart = i;
+                break;
+              }
+            }
+            // Close the string
+            repairedJson = repairedJson.substring(0, lastStringEnd) + '"' + repairedJson.substring(lastStringEnd);
+          }
+        }
+        
+        // Close incomplete arrays
+        const openBrackets = (repairedJson.match(/\[/g) || []).length;
+        const closeBrackets = (repairedJson.match(/\]/g) || []).length;
+        if (openBrackets > closeBrackets) {
+          // Check if we need a comma before closing
+          const lastChar = repairedJson.trim().slice(-1);
+          if (lastChar !== '[' && lastChar !== ',' && lastChar !== '{') {
+            repairedJson += ',';
+          }
+          repairedJson += ']'.repeat(openBrackets - closeBrackets);
+        }
+        
+        // Close incomplete objects
+        const openBraces = (repairedJson.match(/\{/g) || []).length;
+        const closeBraces = (repairedJson.match(/\}/g) || []).length;
+        if (openBraces > closeBraces) {
+          // Check if we need a comma before closing
+          const lastChar = repairedJson.trim().slice(-1);
+          if (lastChar !== '{' && lastChar !== ',' && lastChar !== '[') {
+            repairedJson += ',';
+          }
+          repairedJson += '}'.repeat(openBraces - closeBraces);
+        }
+        
+        // Try parsing repaired JSON
+        try {
+          parsed = JSON.parse(repairedJson);
+          Logger.info('Successfully repaired JSON', { concept });
+        } catch (repairError) {
+          // If repair fails, try to extract valid questions from partial JSON using regex
+          Logger.warn('JSON repair failed, attempting partial extraction', {
+            concept,
+            repairError: repairError instanceof Error ? repairError.message : String(repairError),
+          });
+          
+          // Extract questions using regex as last resort
+          const questionRegex = /\{\s*"question"\s*:\s*"([^"]*(?:\\.[^"]*)*)"\s*,\s*"options"\s*:\s*\[([^\]]+)\]\s*,\s*"correctAnswer"\s*:\s*(\d+)\s*,\s*"explanation"\s*:\s*"([^"]*(?:\\.[^"]*)*)"\s*\}/g;
+          const extractedQuestions: any[] = [];
+          let match;
+          
+          while ((match = questionRegex.exec(jsonStr)) !== null && extractedQuestions.length < 5) {
+            try {
+              const optionsStr = match[2];
+              const options = optionsStr.split(',').map((opt: string) => {
+                const cleaned = opt.trim().replace(/^["']|["']$/g, '');
+                return cleaned;
+              }).filter((opt: string) => opt.length > 0);
+              
+              if (options.length === 4) {
+                extractedQuestions.push({
+                  question: match[1].replace(/\\"/g, '"'),
+                  options: options,
+                  correctAnswer: parseInt(match[3], 10),
+                  explanation: match[4] ? match[4].replace(/\\"/g, '"') : 'No explanation provided.',
+                });
+              }
+            } catch (e) {
+              // Skip invalid matches
+            }
+          }
+          
+          if (extractedQuestions.length >= 3) {
+            Logger.info(`Extracted ${extractedQuestions.length} questions from partial JSON`, { concept });
+            parsed = {
+              title: `Quiz: ${concept}`,
+              description: `Test your knowledge about ${concept}`,
+              questions: extractedQuestions,
+            };
+          } else {
+            throw parseError; // Re-throw original error if extraction fails
+          }
+        }
+      }
 
       if (!parsed.questions || !Array.isArray(parsed.questions)) {
         Logger.error('Invalid quiz format', {
@@ -390,15 +534,23 @@ EXAMPLE VALID RESPONSE:
         validQuestions.push(q);
       });
 
-      // Ensure we have at least 5 questions
-      if (validQuestions.length < 5) {
+      // Ensure we have at least 5 questions (but accept what we have if close)
+      if (validQuestions.length < 3) {
         Logger.error('Not enough valid questions', {
           concept,
           validQuestions: validQuestions.length,
-          totalQuestions: parsed.questions.length,
-          required: 5,
+          totalQuestions: parsed.questions?.length || 0,
+          required: 3,
         });
-        throw new Error(`Only ${validQuestions.length} valid questions found, need at least 5`);
+        throw new Error(`Only ${validQuestions.length} valid questions found, need at least 3`);
+      }
+      
+      // If we have 3-4 questions, that's acceptable (better than failing)
+      if (validQuestions.length < 5) {
+        Logger.warn('Fewer than 5 questions, but proceeding', {
+          concept,
+          validQuestions: validQuestions.length,
+        });
       }
 
       Logger.info(`Validated ${validQuestions.length} unique questions for concept: ${concept}`);

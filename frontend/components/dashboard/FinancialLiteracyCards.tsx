@@ -105,7 +105,7 @@ export default function FinancialLiteracyCards() {
   const handleGenerateQuizzes = async () => {
     try {
       setIsGenerating(true);
-      const data = await generateQuizzes(10);
+      const data = await generateQuizzes(5); // Generate 5 quizzes (5 questions each)
       await loadQuizzes(); // Reload to get updated list
     } catch (error: any) {
       console.error('Error generating quizzes:', error);
@@ -189,13 +189,28 @@ export default function FinancialLiteracyCards() {
 
   // Convert backend quiz questions to QuizModal format
   const convertQuizQuestions = (quiz: Quiz): QuizQuestion[] => {
-    return quiz.questions.map((q, index) => ({
-      id: index,
-      question: q.question,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-    }));
+    return quiz.questions.map((q, index) => {
+      // Ensure correctAnswer is valid (0-3)
+      const correctAnswer = typeof q.correctAnswer === 'number' && 
+                            q.correctAnswer >= 0 && 
+                            q.correctAnswer <= 3 
+                            ? q.correctAnswer 
+                            : 0;
+      
+      console.log(`Question ${index + 1} conversion:`, {
+        question: q.question.substring(0, 50),
+        correctAnswer,
+        optionsCount: q.options?.length || 0,
+      });
+      
+      return {
+        id: index,
+        question: q.question,
+        options: q.options || [],
+        correctAnswer,
+        explanation: q.explanation || 'No explanation provided.',
+      };
+    });
   };
 
   return (

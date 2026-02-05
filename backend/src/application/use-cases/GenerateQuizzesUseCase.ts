@@ -11,7 +11,7 @@ import { NotFoundError } from '@shared/errors/AppError';
 
 export interface GenerateQuizzesRequest {
   userId: string;
-  count?: number; // Number of quizzes to generate (default: 10)
+  count?: number; // Number of quizzes to generate (default: 5)
 }
 
 export interface GenerateQuizzesResponse {
@@ -46,7 +46,7 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
   }
 
   async execute(request: GenerateQuizzesRequest): Promise<GenerateQuizzesResponse> {
-    const { userId, count = 10 } = request;
+    const { userId, count = 5 } = request; // Default to 5 quizzes
 
     // Create Opik trace for quiz generation
     const trace = this.opikService.createTrace('generate-personalized-quizzes', {
