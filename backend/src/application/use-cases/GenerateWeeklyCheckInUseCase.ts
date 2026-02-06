@@ -3,9 +3,13 @@ import { getAIService } from "@infrastructure/services";
 import { ExpenseRepository } from "@infrastructure/repositories/ExpenseRepository";
 import { UserRepository } from "@infrastructure/repositories/UserRepository";
 import { parseAmountFromTitle } from "@shared/utils/parseAmountFromTitle";
+import { getWeekOf } from "@shared/utils/weekUtils";
 
 export interface GenerateWeeklyCheckInRequest {
   userId: string;
+  /** Last week's commitment review (if user just completed it) */
+  lastWeekCommitment?: string;
+  lastWeekCompletionReport?: string;
 }
 
 export interface GenerateWeeklyCheckInResponse {
@@ -65,7 +69,15 @@ export class GenerateWeeklyCheckInUseCase
             .map(([c, a]) => `${c} $${a.toFixed(2)}`)
             .join(", ")}. Recent: ${expenseLines.slice(-5).join("; ")}`;
 
+    const lastWeekContext =
+      request.lastWeekCommitment && request.lastWeekCompletionReport
+        ? `\n**Last week's commitment (just reviewed):** "${request.lastWeekCommitment}"
+Their self-report: "${request.lastWeekCompletionReport}"
+START your weekSummary by acknowledging how last week went, then transition to this week's spending.`
+        : "";
+
     const prompt = `You are a supportive financial coach. The user just completed a week. Generate a 5-minute weekly check-in.
+${lastWeekContext}
 
 **User context:**
 - Monthly income: $${user.monthlyIncome?.toLocaleString() ?? "?"}

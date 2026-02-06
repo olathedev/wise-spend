@@ -5,6 +5,8 @@ import { AuthController } from "@presentation/controllers/AuthController";
 import { ReceiptController } from "@presentation/controllers/ReceiptController";
 import { AnalyticsController } from "@presentation/controllers/AnalyticsController";
 import { QuizController } from "@presentation/controllers/QuizController";
+import { CommitmentController } from "@presentation/controllers/CommitmentController";
+import { ForecastController } from "@presentation/controllers/ForecastController";
 import { authMiddleware } from "@presentation/middleware/authMiddleware";
 
 const router = Router();
@@ -13,6 +15,8 @@ const authController = new AuthController();
 const receiptController = new ReceiptController();
 const analyticsController = new AnalyticsController();
 const quizController = new QuizController();
+const commitmentController = new CommitmentController();
+const forecastController = new ForecastController();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -115,6 +119,43 @@ router.post("/quiz/:quizId/complete", authMiddleware, (req, res, next) =>
 );
 router.delete("/quiz/all", authMiddleware, (req, res, next) =>
   quizController.deleteAllQuizzes(req, res, next),
+);
+
+// Commitment routes (accountability loop)
+router.post("/commitments", authMiddleware, (req, res, next) =>
+  commitmentController.saveCommitment(req, res, next),
+);
+router.get("/commitments/active", authMiddleware, (req, res, next) =>
+  commitmentController.getActiveCommitment(req, res, next),
+);
+router.get("/commitments/latest", authMiddleware, (req, res, next) =>
+  commitmentController.getLatestCommitment(req, res, next),
+);
+router.patch("/commitments/:id/midweek-update", authMiddleware, (req, res, next) =>
+  commitmentController.midWeekUpdate(req, res, next),
+);
+router.post("/commitments/:id/complete", authMiddleware, (req, res, next) =>
+  commitmentController.completeCommitment(req, res, next),
+);
+
+// Cash flow forecast routes
+router.get("/forecast/cashflow", authMiddleware, (req, res, next) =>
+  forecastController.getCashFlow(req, res, next),
+);
+router.patch("/forecast/financial-info", authMiddleware, (req, res, next) =>
+  forecastController.updateFinancialInfo(req, res, next),
+);
+router.get("/forecast/recurring-bills", authMiddleware, (req, res, next) =>
+  forecastController.listRecurringBills(req, res, next),
+);
+router.post("/forecast/recurring-bills", authMiddleware, (req, res, next) =>
+  forecastController.createRecurringBill(req, res, next),
+);
+router.patch("/forecast/recurring-bills/:id", authMiddleware, (req, res, next) =>
+  forecastController.updateRecurringBill(req, res, next),
+);
+router.delete("/forecast/recurring-bills/:id", authMiddleware, (req, res, next) =>
+  forecastController.deleteRecurringBill(req, res, next),
 );
 
 export { router as routes };

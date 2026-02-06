@@ -89,7 +89,8 @@ export default function GoalsTimeline({
           Goals Timeline
         </h3>
         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-          {timelineGoals.length} active goal{timelineGoals.length !== 1 ? "s" : ""}
+          {timelineGoals.length} active goal
+          {timelineGoals.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -141,7 +142,7 @@ export default function GoalsTimeline({
                       </span>
                       <span className="font-semibold text-slate-900 dark:text-black">
                         {Math.round(
-                          (goal.currentAmount / goal.targetAmount) * 100
+                          (goal.currentAmount / goal.targetAmount) * 100,
                         )}
                         %
                       </span>
@@ -168,7 +169,10 @@ export default function GoalsTimeline({
                           Monthly
                         </span>
                         <span className="font-bold text-primary">
-                          ${Math.round(goal.monthlyContribution).toLocaleString()}
+                          $
+                          {Math.round(
+                            goal.monthlyContribution,
+                          ).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -190,7 +194,7 @@ export default function GoalsTimeline({
       </div>
 
       {timelineGoals.some((g) => g.monthsToComplete > 24) && (
-        <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+        <div className="mt-6 p-4 bg-card-light dark:bg-card-dark rounded-2xl border border-slate-100 dark:border-slate-300 shadow-sm ">
           <p className="text-xs text-amber-800 dark:text-amber-300">
             <strong>Note:</strong> Some goals extend beyond 24 months. Consider
             increasing your monthly contributions to accelerate progress.

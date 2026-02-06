@@ -6,6 +6,8 @@ import { errorHandler } from "@presentation/middleware/errorHandler";
 import { routes } from "@presentation/routes";
 import { initializeAIService, getOpikService } from "@infrastructure/services";
 import { initializeDatabase } from "@infrastructure/database";
+import { startMidWeekReminderCron } from "@infrastructure/jobs/midWeekReminderJob";
+import { startPaydayRecurringBillsCron } from "@infrastructure/jobs/paydayRecurringBillsJob";
 import { Logger } from "@shared/utils/logger";
 
 const app: Express = express();
@@ -22,6 +24,9 @@ const initializeServices = async () => {
     Logger.warn("AI service initialization failed", error);
     Logger.warn("Agentic features will not be available");
   }
+
+  startMidWeekReminderCron();
+  startPaydayRecurringBillsCron();
 };
 
 // Middleware

@@ -220,7 +220,7 @@ export default function SacrificeScore({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-primary transition-colors"
+              className="p-4 rounded-xl bg-card-light dark:bg-card-dark border border-slate-100 dark:border-slate-300 shadow-sm  transition-colors"
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">

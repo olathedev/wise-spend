@@ -11,7 +11,7 @@ import { NotFoundError } from '@shared/errors/AppError';
 
 export interface GenerateQuizzesRequest {
   userId: string;
-  count?: number; // Number of quizzes to generate (default: 10)
+  count?: number; // Number of quizzes to generate (default: 5)
 }
 
 export interface GenerateQuizzesResponse {
@@ -24,6 +24,19 @@ export interface GenerateQuizzesResponse {
  * Generate Quizzes Use Case
  * Creates personalized financial quizzes for a user based on their spending patterns
  */
+/**
+ * Normalize question text for deduplication (ignore numbers, names, spacing)
+ */
+function fingerprintQuestion(text: string, userName?: string): string {
+  let s = text.toLowerCase().trim().replace(/\s+/g, ' ');
+  if (userName) {
+    s = s.replace(new RegExp(userName.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '[name]');
+  }
+  s = s.replace(/\d+(\.\d+)?/g, '#');
+  s = s.replace(/\$#+/g, '$#');
+  return s;
+}
+
 export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, GenerateQuizzesResponse> {
   private quizCuratorAgent: QuizCuratorAgent;
   private quizRepository: QuizRepository;
@@ -46,7 +59,7 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
   }
 
   async execute(request: GenerateQuizzesRequest): Promise<GenerateQuizzesResponse> {
-    const { userId, count = 10 } = request;
+    const { userId, count = 5 } = request; // Default to 5 quizzes
 
     // Create Opik trace for quiz generation
     const trace = this.opikService.createTrace('generate-personalized-quizzes', {
@@ -111,7 +124,7 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
         }
       }
 
-      // Generate quizzes for each concept
+      // Generate quizzes SEQUENTIALLY so each quiz knows questions already used in others
       const generateSpan = trace.span({
         name: 'generate-quizzes-for-concepts',
         type: 'llm',
@@ -124,18 +137,29 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
         },
       });
 
-      const quizPromises = conceptsToGenerate.map(async (concept) => {
+      const alreadyUsedQuestions: string[] = [];
+      const rawQuizzes: Quiz[] = [];
+
+      for (const concept of conceptsToGenerate) {
         try {
-          const quiz = await this.quizCuratorAgent.generateQuizForConcept(concept, context);
-          return quiz;
+          const quiz = await this.quizCuratorAgent.generateQuizForConcept(
+            concept,
+            context,
+            alreadyUsedQuestions,
+          );
+          if (quiz) {
+            rawQuizzes.push(quiz);
+            quiz.questions.forEach((q) => alreadyUsedQuestions.push(q.question));
+          }
         } catch (error) {
           Logger.error(`Failed to generate quiz for concept: ${concept}`, error);
-          return null;
         }
-      });
+      }
 
-      const generatedQuizzes = (await Promise.all(quizPromises)).filter(
-        (quiz): quiz is Quiz => quiz !== null,
+      // Post-generation deduplication: remove duplicate questions across quizzes
+      const generatedQuizzes = this.deduplicateQuestionsAcrossQuizzes(
+        rawQuizzes,
+        context.user.name,
       );
 
       generateSpan.end();
@@ -194,5 +218,45 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
       }
       throw new Error(`Failed to generate quizzes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  /**
+   * Remove duplicate/similar questions across quizzes. First occurrence wins.
+   */
+  private deduplicateQuestionsAcrossQuizzes(quizzes: Quiz[], userName?: string): Quiz[] {
+    const seenFingerprints = new Set<string>();
+    const result: Quiz[] = [];
+
+    for (const quiz of quizzes) {
+      const uniqueQuestions = quiz.questions.filter((q) => {
+        const fp = fingerprintQuestion(q.question, userName);
+        if (seenFingerprints.has(fp)) {
+          Logger.info(`Deduplicating question across quizzes`, {
+            concept: quiz.concept,
+            questionPreview: q.question.substring(0, 60),
+          });
+          return false;
+        }
+        seenFingerprints.add(fp);
+        return true;
+      });
+
+      if (uniqueQuestions.length >= 3) {
+        result.push(
+          new Quiz(
+            quiz.userId,
+            quiz.title,
+            quiz.description,
+            quiz.concept,
+            uniqueQuestions,
+          ),
+        );
+      } else {
+        Logger.warn(`Quiz "${quiz.concept}" had too many duplicates (${uniqueQuestions.length} left), keeping all original questions`);
+        result.push(quiz);
+      }
+    }
+
+    return result;
   }
 }

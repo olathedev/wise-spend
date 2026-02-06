@@ -24,9 +24,17 @@ export interface ApiResponse<T> {
   error?: { message: string };
 }
 
-export async function generateWeeklyCheckIn(): Promise<WeeklyCheckInResponse> {
+export interface GenerateWeeklyCheckInOptions {
+  lastWeekCommitment?: string;
+  lastWeekCompletionReport?: string;
+}
+
+export async function generateWeeklyCheckIn(
+  options?: GenerateWeeklyCheckInOptions
+): Promise<WeeklyCheckInResponse> {
   const response = await apiClient.post<ApiResponse<WeeklyCheckInResponse>>(
-    "/ai/weekly-check-in"
+    "/ai/weekly-check-in",
+    options ?? {}
   );
   if (!response.data.success || !response.data.data) {
     throw new Error(
@@ -38,7 +46,7 @@ export async function generateWeeklyCheckIn(): Promise<WeeklyCheckInResponse> {
 
 export async function saveCommitment(commitment: string): Promise<void> {
   const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
-    "/ai/commitment",
+    "/commitments",
     { commitment }
   );
   if (!response.data.success) {

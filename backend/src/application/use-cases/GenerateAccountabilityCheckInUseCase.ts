@@ -1,6 +1,7 @@
 import { IUseCase } from "@application/interfaces/IUseCase";
 import { getAIService } from "@infrastructure/services";
 import { UserRepository } from "@infrastructure/repositories/UserRepository";
+import { CommitmentRepository } from "@infrastructure/repositories/CommitmentRepository";
 
 export interface GenerateAccountabilityCheckInRequest {
   userId: string;
@@ -27,22 +28,28 @@ export class GenerateAccountabilityCheckInUseCase
       throw new Error("User not found");
     }
 
-    const commitment = user.currentCommitment ?? "No commitment set";
-    const createdAt = user.commitmentCreatedAt
-      ? new Date(user.commitmentCreatedAt)
-      : null;
-    const daysSince = createdAt
+    const commitmentRepo = new CommitmentRepository();
+    const activeCommitment = await commitmentRepo.findActiveByUserId(request.userId);
+    const commitment =
+      activeCommitment?.commitmentText ?? user.currentCommitment ?? "No commitment set";
+    const daysSince = activeCommitment?.createdAt
       ? Math.floor(
-          (Date.now() - createdAt.getTime()) / (24 * 60 * 60 * 1000)
+          (Date.now() - new Date(activeCommitment.createdAt!).getTime()) /
+            (24 * 60 * 60 * 1000),
         )
-      : 0;
+      : user.commitmentCreatedAt
+        ? Math.floor(
+            (Date.now() - new Date(user.commitmentCreatedAt).getTime()) /
+              (24 * 60 * 60 * 1000),
+          )
+        : 0;
 
     const prompt = `You are a supportive financial coach. The user committed to: "${commitment}" about ${daysSince} days ago.
 
 Generate a mid-week accountability check-in that:
 1. References their commitment warmly (e.g. "You committed to packing lunch 3x this week - how's it going?")
-2. Asks ONE short question to check in (celebrate wins, explore struggles without judgment)
-3. Includes 1-2 sentences of encouragement. If they might be struggling, be empathetic - "Life happens. What would help you get back on track?"
+2. Asks ONE short question to check in – explore how it's going, surface any barriers gently, and celebrate progress if they've made any
+3. Includes 1-2 sentences of encouragement. If they might be struggling, be empathetic – "Life happens. What would help you get back on track?" Celebrate wins with enthusiasm.
 
 Return ONLY valid JSON:
 {

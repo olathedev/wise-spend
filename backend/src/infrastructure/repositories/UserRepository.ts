@@ -23,6 +23,10 @@ export class UserRepository implements IUserRepository {
     if (document.wiseScore != null) user.wiseScore = document.wiseScore;
     if (document.wiseScoreUpdatedAt != null) user.wiseScoreUpdatedAt = document.wiseScoreUpdatedAt;
     if (document.wiseScoreTier != null) user.wiseScoreTier = document.wiseScoreTier;
+    if (document.nextPaydayDate != null) user.nextPaydayDate = document.nextPaydayDate;
+    if (document.paydayFrequency != null) user.paydayFrequency = document.paydayFrequency as "weekly" | "biweekly" | "monthly";
+    if (document.averageMonthlyIncome != null) user.averageMonthlyIncome = document.averageMonthlyIncome;
+    if (document.currentBalance != null) user.currentBalance = document.currentBalance;
     return user;
   }
 
@@ -59,6 +63,10 @@ export class UserRepository implements IUserRepository {
       commitmentCreatedAt: entity.commitmentCreatedAt,
       lastAccountabilityCheckInAt: entity.lastAccountabilityCheckInAt,
       lastCelebratedMilestone: entity.lastCelebratedMilestone,
+      nextPaydayDate: entity.nextPaydayDate,
+      paydayFrequency: entity.paydayFrequency,
+      averageMonthlyIncome: entity.averageMonthlyIncome,
+      currentBalance: entity.currentBalance,
     });
 
     const saved = await document.save();

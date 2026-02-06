@@ -22,6 +22,10 @@ export interface IUserDocument extends Document {
   commitmentCreatedAt?: Date;
   lastAccountabilityCheckInAt?: Date;
   lastCelebratedMilestone?: number;
+  nextPaydayDate?: Date;
+  paydayFrequency?: "weekly" | "biweekly" | "monthly";
+  averageMonthlyIncome?: number;
+  currentBalance?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +68,10 @@ const UserSchema = new Schema<IUserDocument>(
     wiseScore: { type: Number, required: false },
     wiseScoreUpdatedAt: { type: Date, required: false },
     wiseScoreTier: { type: String, required: false },
+    nextPaydayDate: { type: Date, required: false },
+    paydayFrequency: { type: String, enum: ["weekly", "biweekly", "monthly"], required: false },
+    averageMonthlyIncome: { type: Number, required: false },
+    currentBalance: { type: Number, required: false },
   },
   {
     timestamps: true,

@@ -30,11 +30,8 @@ export default function WeeklyCheckInBanner({
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400">
-              <Calendar size={20} />
-            </div>
             <div>
-              <p className="font-bold text-slate-900 dark:text-white">
+              <p className="font-bold text-slate-900 dark:text-black">
                 {isCheckInDay ? "Your weekly check-in is ready" : "Check in on your commitment"}
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">

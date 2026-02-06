@@ -19,11 +19,13 @@ interface QuizModalProps {
   topicIcon: React.ReactNode;
   questions: QuizQuestion[];
   isLoading?: boolean;
+  /** When true, skip "Ready to Learn?" and show first question immediately */
+  autoStart?: boolean;
 
   onComplete?: (answers: number[]) => void | Promise<void>;
 }
 
-export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false, onComplete }: QuizModalProps) {
+export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, questions, isLoading = false, autoStart = false, onComplete }: QuizModalProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -49,10 +51,10 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
       setAnsweredQuestions([]);
       setAnswers(new Array(questions.length).fill(-1));
       setIsComplete(false);
-      setHasStarted(false);
+      setHasStarted(autoStart);
       setIsSubmitting(false);
     }
-  }, [isOpen, questions.length]);
+  }, [isOpen, questions.length, autoStart]);
 
   const handleStart = () => {
     setHasStarted(true);
@@ -169,7 +171,7 @@ export default function QuizModal({ isOpen, onClose, topicTitle, topicIcon, ques
 
   const handleClose = () => {
     if (isComplete && onComplete) {
-      onComplete(score, shuffledQuestions.length);
+      onComplete(answers);
     }
     onClose();
     setTimeout(() => {

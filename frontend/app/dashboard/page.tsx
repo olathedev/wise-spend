@@ -5,6 +5,7 @@ import SocraticCoach from '@/components/dashboard/SocraticCoach';
 import FinancialResilienceChart from '@/components/dashboard/FinancialResilienceChart';
 import FinancialInsights from '@/components/dashboard/FinancialInsights';
 import WeeklyCheckInBanner from '@/components/check-in/WeeklyCheckInBanner';
+import CommitmentCard from '@/components/dashboard/CommitmentCard';
 
 export default function DashboardPage() {
   return (
@@ -12,6 +13,9 @@ export default function DashboardPage() {
       <Header />
       <div className="mb-6">
         <WeeklyCheckInBanner showAccountabilityHint />
+      </div>
+      <div className="mb-6">
+        <CommitmentCard />
       </div>
       <FinancialSummaryCards />
       <FinancialInsights />

@@ -20,12 +20,12 @@ export class QuizController extends BaseController {
 
     const request: GenerateQuizzesRequest = {
       userId,
-      count: req.body.count ? parseInt(req.body.count, 10) : 10,
+      count: req.body.count ? parseInt(req.body.count, 10) : 5, // Default to 5
     };
 
     // Validate count
-    if (request.count && (request.count < 1 || request.count > 20)) {
-      return next(new ValidationError('Count must be between 1 and 20'));
+    if (request.count && (request.count < 1 || request.count > 10)) {
+      return next(new ValidationError('Count must be between 1 and 10'));
     }
 
     const useCase = new GenerateQuizzesUseCase();
@@ -43,6 +43,7 @@ export class QuizController extends BaseController {
             questions: quiz.questions.map(q => ({
               question: q.question,
               options: q.options,
+              correctAnswer: q.correctAnswer, // Include correct answer
               explanation: q.explanation,
               concept: q.concept,
             })),
@@ -91,6 +92,7 @@ export class QuizController extends BaseController {
             questions: quiz.questions.map(q => ({
               question: q.question,
               options: q.options,
+              correctAnswer: q.correctAnswer, // Include correct answer
               explanation: q.explanation,
               concept: q.concept,
             })),

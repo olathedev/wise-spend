@@ -118,12 +118,43 @@ This document describes the MongoDB collections and their schemas for the WiseSp
 
 **Notes**: Tracks daily financial literacy quiz completions. Streak = consecutive days with status "completed".
 
+### 5. Commitments Collection
+
+**Model**: `CommitmentModel`
+**Collection Name**: `commitments`
+
+```typescript
+{
+  _id: ObjectId,
+  userId: ObjectId (ref: "User", indexed),
+  weekOf: string (YYYY-MM-DD, indexed),
+  commitmentText: string (required),
+  status: "active" | "completed" | "abandoned" (default: "active", indexed),
+  midWeekCheckInDate?: Date,
+  midWeekResponse?: string,
+  midWeekReminderSentAt?: Date,
+  aiObservations: string[] (default: []),
+  completionSelfReport?: string,
+  createdAt: Date (auto),
+  updatedAt: Date (auto)
+}
+```
+
+**Indexes**:
+- `userId` (indexed)
+- `weekOf` (indexed)
+- Compound: `{ userId: 1, weekOf: 1 }` (unique)
+- Compound: `{ userId: 1, status: 1 }`
+
+**Notes**: Tracks weekly commitments from Sunday check-ins. Mid-week reminder cron runs Wed 6pm ET.
+
 ## Entity Relationships
 
 ```
 User (1) ──< (many) Expense
 User (1) ──< (many) APIKey
 User (1) ──< (many) DailyAssessment
+User (1) ──< (many) Commitment
 ```
 
 ## Important Notes

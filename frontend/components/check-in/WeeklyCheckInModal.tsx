@@ -2,12 +2,31 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Loader2, CheckCircle2, Calendar } from "lucide-react";
+import { X, Loader2, CheckCircle2, Calendar, Target } from "lucide-react";
 import {
   generateWeeklyCheckIn,
   saveCommitment,
   type WeeklyCheckInResponse,
 } from "@/services/checkInService";
+import {
+  getLatestCommitment,
+  completeCommitment,
+  type CommitmentDto,
+} from "@/services/commitmentService";
+
+function getCurrentWeekSunday(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day;
+  const sunday = new Date(d);
+  sunday.setDate(diff);
+  return sunday.toISOString().slice(0, 10);
+}
+
+function isLastWeeksCommitment(c: CommitmentDto): boolean {
+  const currentWeek = getCurrentWeekSunday();
+  return c.weekOf < currentWeek && c.status === "active";
+}
 
 interface WeeklyCheckInModalProps {
   isOpen: boolean;
@@ -20,23 +39,88 @@ export default function WeeklyCheckInModal({
   onClose,
   onSuccess,
 }: WeeklyCheckInModalProps) {
+  const [step, setStep] = useState<"init" | "review" | "checkin" | "done">("init");
+  const [lastWeekCommitment, setLastWeekCommitment] = useState<CommitmentDto | null>(null);
   const [data, setData] = useState<WeeklyCheckInResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [commitment, setCommitment] = useState("");
   const [committed, setCommitted] = useState(false);
+  const [lastWeekReport, setLastWeekReport] = useState("");
+  const [lastWeekStatus, setLastWeekStatus] = useState<"completed" | "abandoned">("completed");
 
   useEffect(() => {
-    if (isOpen && !data && !loading) {
-      setLoading(true);
-      setError(null);
-      generateWeeklyCheckIn()
-        .then(setData)
-        .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
-        .finally(() => setLoading(false));
+    if (!isOpen) return;
+    setStep("init");
+    setLastWeekCommitment(null);
+    setData(null);
+    setCommitment("");
+    setCommitted(false);
+    setLastWeekReport("");
+    setError(null);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || step !== "init") return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    getLatestCommitment()
+      .then((c) => {
+        if (cancelled) return;
+        if (c && isLastWeeksCommitment(c)) {
+          setLastWeekCommitment(c);
+          setStep("review");
+        } else {
+          loadCheckIn(undefined);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, step]);
+
+  const loadCheckIn = (lastWeek?: { commitment: string; report: string }) => {
+    setStep("checkin");
+    setLoading(true);
+    setError(null);
+    generateWeeklyCheckIn(
+      lastWeek
+        ? {
+            lastWeekCommitment: lastWeek.commitment,
+            lastWeekCompletionReport: lastWeek.report,
+          }
+        : undefined,
+    )
+      .then(setData)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  };
+
+  const handleLastWeekSubmit = async () => {
+    if (!lastWeekCommitment?.id) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const report = lastWeekReport.trim() || (lastWeekStatus === "completed" ? "I did it!" : "Couldn't stick to it.");
+      await completeCommitment(lastWeekCommitment.id, report, lastWeekStatus);
+      loadCheckIn({
+        commitment: lastWeekCommitment.commitmentText,
+        report,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save");
+    } finally {
+      setSaving(false);
     }
-  }, [isOpen, data, loading]);
+  };
 
   const handleCommit = async () => {
     const text = commitment.trim();
@@ -104,11 +188,65 @@ export default function WeeklyCheckInModal({
               </div>
             </div>
 
-            {loading ? (
+            {step === "review" && lastWeekCommitment ? (
+              <div className="space-y-6">
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                    <Target size={18} className="text-amber-600" />
+                    How did last week&apos;s commitment go?
+                  </h3>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">
+                    You committed to: <strong>{lastWeekCommitment.commitmentText}</strong>
+                  </p>
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setLastWeekStatus("completed")}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                        lastWeekStatus === "completed"
+                          ? "bg-emerald-500 text-white"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      Completed
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLastWeekStatus("abandoned")}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                        lastWeekStatus === "abandoned"
+                          ? "bg-amber-500 text-white"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      }`}
+                    >
+                      Couldn&apos;t stick to it
+                    </button>
+                  </div>
+                  <textarea
+                    value={lastWeekReport}
+                    onChange={(e) => setLastWeekReport(e.target.value)}
+                    placeholder="Optional: add a quick note (e.g. what helped or what got in the way)"
+                    className="w-full h-20 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 resize-none text-sm"
+                    disabled={saving}
+                  />
+                </div>
+                {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleLastWeekSubmit}
+                    disabled={saving}
+                    className="flex-1 px-4 py-3 bg-teal-500 text-white rounded-xl font-semibold hover:bg-teal-600 disabled:opacity-50"
+                  >
+                    {saving ? "Saving..." : "Continue to this week"}
+                  </button>
+                </div>
+              </div>
+            ) : loading ? (
               <div className="py-12 flex flex-col items-center justify-center gap-4">
                 <Loader2 size={40} className="animate-spin text-teal-500" />
                 <p className="text-slate-600 dark:text-slate-400">
-                  Preparing your check-in...
+                  {step === "init" ? "Checking for last week's commitment..." : "Preparing your check-in..."}
                 </p>
               </div>
             ) : error ? (

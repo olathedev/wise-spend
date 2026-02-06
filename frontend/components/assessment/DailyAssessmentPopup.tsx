@@ -60,8 +60,8 @@ export default function DailyAssessmentPopup() {
   const topicQuestions = QUIZ_DATA[topic.id] ?? [];
   const dailyQuestions = topicQuestions
     .sort(() => Math.random() - 0.5)
-    .slice(0, 3)
-    .map((q, i) => ({ ...q, id: i + 1 }));
+    .slice(0, 10)
+    .map((q, i) => ({ ...q, id: i }));
 
   const handleStart = () => {
     setQuestions(dailyQuestions);
@@ -78,8 +78,12 @@ export default function DailyAssessmentPopup() {
     }
   };
 
-  const handleQuizComplete = async (score: number, total: number) => {
-    const scorePct = total > 0 ? Math.round((score / total) * 100) : 0;
+  const handleQuizComplete = async (answers: number[], questionsUsed: QuizQuestion[]) => {
+    const total = questionsUsed.length;
+    const correctCount = answers.filter(
+      (a, i) => i < questionsUsed.length && a === questionsUsed[i].correctAnswer
+    ).length;
+    const scorePct = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     try {
       await recordDailyAssessmentComplete(scorePct);
     } catch {
@@ -124,7 +128,7 @@ export default function DailyAssessmentPopup() {
               <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
                 Today&apos;s topic: <strong>{topic.emoji} {topic.title}</strong>
                 <br />
-                Take 3 quick questions to keep your streak going!
+                Take 10 questions to keep your streak going!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -152,7 +156,7 @@ export default function DailyAssessmentPopup() {
         <DailyQuizWrapper
           isOpen={isQuizOpen}
           onClose={handleQuizClose}
-          onComplete={handleQuizComplete}
+          onComplete={(answers) => handleQuizComplete(answers, questions)}
           questions={questions}
           topicTitle={topic.title}
         />
@@ -164,7 +168,7 @@ export default function DailyAssessmentPopup() {
 interface DailyQuizWrapperProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (score: number, total: number) => void;
+  onComplete: (answers: number[]) => void | Promise<void>;
   questions: QuizQuestion[];
   topicTitle: string;
 }
@@ -187,6 +191,7 @@ function DailyQuizWrapper({
         </div>
       }
       questions={questions}
+      autoStart
       onComplete={onComplete}
     />
   );

@@ -1,6 +1,7 @@
 import { IUseCase } from "@application/interfaces/IUseCase";
 import { IUserRepository } from "@domain/repositories/IUserRepository";
 import { UserRepository } from "@infrastructure/repositories/UserRepository";
+import { CommitmentRepository } from "@infrastructure/repositories/CommitmentRepository";
 import { getAIService } from "@infrastructure/services";
 import { NotFoundError } from "@shared/errors/AppError";
 
@@ -21,6 +22,7 @@ function buildReceiptAnalysisPrompt(userContext: {
   goalTargets?: Record<string, number> | null;
   goalDeadlines?: Record<string, string> | null;
   coachPersonality: string | null;
+  activeCommitment?: string | null;
 }): string {
   const incomeStr =
     userContext.monthlyIncome != null
@@ -40,13 +42,16 @@ function buildReceiptAnalysisPrompt(userContext: {
   }
   const coachStr =
     userContext.coachPersonality || "They have not chosen a coach style.";
+  const commitmentStr = userContext.activeCommitment
+    ? `\n- **This week's commitment:** "${userContext.activeCommitment}" – If this purchase relates to their commitment (e.g. they committed to "pack lunch 3x" and this is a restaurant receipt), reference it in your analysis. Gently connect the purchase to their commitment.`
+    : "";
 
   return `You are a friendly, insightful financial coach. The user has shared a receipt image.
 
 **User context:**
 - ${incomeStr}
 - ${goalsStr}
-- Coach style: ${coachStr}
+- Coach style: ${coachStr}${commitmentStr}
 
 **Your task:**
 1. **Extract spending** – From the receipt image, identify the merchant, date (if visible), total amount spent, and main categories of items (e.g. groceries, dining, retail).
@@ -77,6 +82,9 @@ export class AnalyzeReceiptUseCase
       throw new NotFoundError("User not found");
     }
 
+    const commitmentRepo = new CommitmentRepository();
+    const activeCommitment = await commitmentRepo.findActiveByUserId(request.userId);
+
     const prompt = buildReceiptAnalysisPrompt({
       monthlyIncome: user.monthlyIncome ?? null,
       financialGoals: user.financialGoals ?? null,
@@ -84,6 +92,7 @@ export class AnalyzeReceiptUseCase
       goalTargets: user.goalTargets ?? null,
       goalDeadlines: user.goalDeadlines ?? null,
       coachPersonality: user.coachPersonality ?? null,
+      activeCommitment: activeCommitment?.commitmentText ?? null,
     });
 
     const aiService = getAIService();

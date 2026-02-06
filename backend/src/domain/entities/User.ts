@@ -35,6 +35,14 @@ export class User extends BaseEntity {
   public lastAccountabilityCheckInAt?: Date;
   /** Last celebrated milestone amount (e.g. 1000, 2000). */
   public lastCelebratedMilestone?: number;
+  /** Cash flow forecast: next payday date */
+  public nextPaydayDate?: Date;
+  /** Cash flow: how often user gets paid */
+  public paydayFrequency?: "weekly" | "biweekly" | "monthly";
+  /** Cash flow: typical monthly income (for forecast) */
+  public averageMonthlyIncome?: number;
+  /** Cash flow: manual current account balance (if not connected to bank) */
+  public currentBalance?: number;
 
   constructor(
     email: string,

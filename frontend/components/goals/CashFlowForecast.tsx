@@ -155,7 +155,7 @@ export default function CashFlowForecast() {
             transition={{ delay: index * 0.1 }}
             className={`p-4 rounded-xl border ${
               month.status === "shortfall"
-                ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                ? "bg-card-light border border-slate-100 dark:border-slate-300 shadow-sm p-6"
                 : month.status === "tight"
                   ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
                   : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
@@ -179,8 +179,8 @@ export default function CashFlowForecast() {
                     : "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300"
                 }`}
               >
-                {month.net >= 0 ? "+" : ""}
-                ${Math.abs(month.net).toLocaleString()}
+                {month.net >= 0 ? "+" : ""}$
+                {Math.abs(month.net).toLocaleString()}
               </div>
             </div>
 
@@ -212,9 +212,9 @@ export default function CashFlowForecast() {
             <strong className="text-slate-900 dark:text-black">
               Proactive Planning:
             </strong>{" "}
-            Based on your patterns, you might run tight next month. Want to
-            plan together? Consider reducing discretionary spending or
-            increasing income.
+            Based on your patterns, you might run tight next month. Want to plan
+            together? Consider reducing discretionary spending or increasing
+            income.
           </p>
         </div>
       )}

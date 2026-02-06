@@ -10,6 +10,8 @@ import { GenerateWeeklyCheckInUseCase } from '@application/use-cases/GenerateWee
 import { SaveCommitmentUseCase } from '@application/use-cases/SaveCommitmentUseCase';
 import { GenerateAccountabilityCheckInUseCase } from '@application/use-cases/GenerateAccountabilityCheckInUseCase';
 import { CheckMilestoneCelebrationUseCase } from '@application/use-cases/CheckMilestoneCelebrationUseCase';
+import { GetDailyAssessmentStatusUseCase } from '@application/use-cases/GetDailyAssessmentStatusUseCase';
+import { RecordDailyAssessmentUseCase } from '@application/use-cases/RecordDailyAssessmentUseCase';
 
 import { FinancialAssistantChatUseCase, FinancialAssistantChatRequest } from '@application/use-cases/FinancialAssistantChatUseCase';
 import { ChatRequest, ChatMessage } from '@domain/interfaces/IAIService';
@@ -100,8 +102,21 @@ export class AIController extends BaseController {
   async generateWeeklyCheckIn(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const lastWeekCommitment = req.body?.lastWeekCommitment;
+    const lastWeekCompletionReport = req.body?.lastWeekCompletionReport;
     const useCase = new GenerateWeeklyCheckInUseCase();
-    await this.executeUseCase(useCase, { userId }, res, next);
+    await this.executeUseCase(
+      useCase,
+      {
+        userId,
+        lastWeekCommitment:
+          typeof lastWeekCommitment === 'string' ? lastWeekCommitment : undefined,
+        lastWeekCompletionReport:
+          typeof lastWeekCompletionReport === 'string' ? lastWeekCompletionReport : undefined,
+      },
+      res,
+      next,
+    );
   }
 
   async saveCommitment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
@@ -130,8 +145,25 @@ export class AIController extends BaseController {
     await this.executeUseCase(useCase, { userId, currentSavedAmount }, res, next);
   }
 
+  async getDailyAssessmentStatus(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const useCase = new GetDailyAssessmentStatusUseCase();
+    await this.executeUseCase(useCase, { userId }, res, next);
+  }
 
- 
+  async recordDailyAssessment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    const userId = req.user?.userId;
+    if (!userId) return next(new UnauthorizedError('Unauthorized'));
+    const status = req.body?.status as 'completed' | 'skipped';
+    if (!status || !['completed', 'skipped'].includes(status)) {
+      return next(new ValidationError('status must be "completed" or "skipped"'));
+    }
+    const score = req.body?.score != null ? Number(req.body.score) : undefined;
+    const useCase = new RecordDailyAssessmentUseCase();
+    await this.executeUseCase(useCase, { userId, status, score }, res, next);
+  }
+
   async assistantChat(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     const userId = req.user?.userId;
     if (!userId) {

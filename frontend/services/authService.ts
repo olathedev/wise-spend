@@ -102,6 +102,8 @@ export interface GetCurrentUserResponse {
   monthlyIncome: number | null;
   financialGoals: string[] | null;
   goalTargets: Record<string, number> | null;
+  goalDeadlines: Record<string, string> | null;
+  primaryGoalId: string | null;
   coachPersonality: string | null;
   wiseScore: number | null;
   wiseScoreUpdatedAt: string | null;
