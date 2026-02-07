@@ -4,7 +4,7 @@
 
 [![Built for Comet Hackathon](https://img.shields.io/badge/Built%20for-Comet%20AI%20Agents%20Hackathon-blue)](https://comet.com)
 [![Powered by Opik](https://img.shields.io/badge/Powered%20by-Opik-purple)](https://comet.com/opik)
-[![Gemini 2.5 Flash](https://img.shields.io/badge/Gemini-2.5%20Flash-orange)](https://ai.google.dev)
+[![Gemini 3](https://img.shields.io/badge/Gemini-3-orange)](https://ai.google.dev)
 
 **For judges:** This README is structured so you can quickly see the problem, solution, architecture, **all features (including the Grow page)**, and a suggested evaluation path. Use **Product at a Glance** and **Demo Scenarios** to know what to try in the app; use **Evaluation Summary** for scoring alignment.
 
@@ -27,7 +27,7 @@
 **WiseSpend is an agentic, AI-first financial coach** that transforms "financial fog" into actionable resilience.
 
 Instead of just tracking expenses, we:
-1. **Scan receipts with Gemini 2.5 Flash** → Multimodal AI understands *what* you bought and *why* it matters
+1. **Scan receipts with Gemini 3** → Multimodal AI understands *what* you bought and *why* it matters
 2. **Calculate real goal impact** → Shows you: *"That $100 purchase = 2 weeks further from your house deposit"*
 3. **Socratic coaching** → Asks thought-provoking questions, not generic advice
 4. **Full observability** → Every reasoning step traced in Opik for continuous improvement
@@ -47,7 +47,7 @@ Instead of just tracking expenses, we:
 │                                                                         │
 │  ┌─────────────┐     ┌──────────────┐     ┌─────────────────────────┐  │
 │  │   Next.js   │────▶│   Express    │────▶│   Google GenAI Service  │  │
-│  │   Frontend  │◀────│   Backend    │◀────│   (Gemini 2.5 Flash)    │  │
+│  │   Frontend  │◀────│   Backend    │◀────│   (Gemini 3)            │  │
 │  └─────────────┘     └──────────────┘     └─────────────────────────┘  │
 │        │                    │                         │                 │
 │        │                    ▼                         ▼                 │
@@ -72,7 +72,7 @@ Instead of just tracking expenses, we:
     ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
     │   RECEIPT SCAN   │───▶│  IMAGE ANALYSIS  │───▶│  ITEM EXTRACTION │
     │                  │    │                  │    │                  │
-    │ User uploads     │    │ Gemini 2.5 Flash │    │ Parse line items │
+    │ User uploads     │    │ Gemini 3          │    │ Parse line items │
     │ receipt photo    │    │ Vision processes  │    │ Categorize items │
     │                  │    │                  │    │                  │
     └──────────────────┘    └──────────────────┘    └──────────────────┘
@@ -140,7 +140,7 @@ Instead of just tracking expenses, we:
     │  traced          │    │                  │    │                  │
     └──────────────────┘    └──────────────────┘    └──────────────────┘
 
-    ⬆️ Quiz generation and Grow chat traced in Opik (chat-gemini-2.5-flash, quiz generation spans)
+    ⬆️ Quiz generation and Grow chat traced in Opik (chat-gemini-3, quiz generation spans)
 ```
 
 ### Opik Tracing Architecture
@@ -148,7 +148,7 @@ Instead of just tracking expenses, we:
 ```
 OPIK INTEGRATION
 ├── Trace Creation ──────────── Every AI call creates a trace
-│   ├── chat-gemini-2.5-flash ─── Chat (AI Coach + Grow panel)
+│   ├── chat-gemini-3 ─────────── Chat (AI Coach + Grow panel)
 │   ├── analyze-receipt-image ─── Receipt analysis (main feature)
 │   └── generate-quizzes ──────── Grow: AI-generated literacy quizzes
 │
@@ -175,7 +175,7 @@ OPIK INTEGRATION
 ### 📸 Multimodal Receipt Scanning
 **Snap a photo, understand the impact.**
 
-- **Gemini 2.5 Flash Vision**: Uses Gemini 2.5 Flash's multimodal capabilities to parse unstructured receipt images
+- **Gemini 3 Vision**: Uses Gemini 3's multimodal capabilities to parse unstructured receipt images
 - **Intent Recognition**: Distinguishes "necessity" from "luxury" (not just OCR)
 - **Automatic Categorization**: Smart categorization of line items
 - **Full Opik Tracing**: Every step from image → analysis → insight is traced
@@ -302,7 +302,7 @@ WiseSpend showcases **production-grade Opik integration** with comprehensive tra
 
 | Operation | Trace Name | Spans |
 |-----------|------------|-------|
-| Chat Conversation | `chat-gemini-2.5-flash` | LLM call, response processing |
+| Chat Conversation | `chat-gemini-3` | LLM call, response processing |
 | Receipt Analysis | `analyze-receipt-image` | Preprocessing, Vision analysis, Goal impact calculation |
 
 **Trace Structure:**
@@ -551,7 +551,7 @@ frontend/
 - **Cloudinary** - Receipt image storage
 
 ### AI & Observability
-- **Google Gemini 2.5 Flash** - Multimodal AI (vision + text)
+- **Google Gemini 3** - Multimodal AI (vision + text)
 - **Opik** - Full observability and evaluation
 - **Opik Agent Optimizer** - Prompt optimization
 
@@ -565,7 +565,7 @@ frontend/
 2. Navigate to your workspace
 3. Open project: `WiseSpend-Evals` (or your configured project)
 4. See traces:
-   - `chat-gemini-2.5-flash` - Chat conversations
+   - `chat-gemini-3` - Chat conversations
    - `analyze-receipt-image` - Receipt analysis (with nested spans)
 
 **Trace Details:**
