@@ -6,7 +6,7 @@
 [![Powered by Opik](https://img.shields.io/badge/Powered%20by-Opik-purple)](https://comet.com/opik)
 [![Gemini 2.5 Flash](https://img.shields.io/badge/Gemini-2.5%20Flash-orange)](https://ai.google.dev)
 
-**For judges:** This README is structured so you can quickly see the problem, solution, architecture, **all features (including the Grow page)**, and a suggested evaluation path. Use **Product at a Glance** and **Demo Scenarios** to know what to try in the app; use **Why This Wins** for scoring alignment.
+**For judges:** This README is structured so you can quickly see the problem, solution, architecture, **all features (including the Grow page)**, and a suggested evaluation path. Use **Product at a Glance** and **Demo Scenarios** to know what to try in the app; use **Evaluation Summary** for scoring alignment.
 
 ---
 
@@ -469,7 +469,7 @@ Frontend runs on `http://localhost:3000`
 
 ---
 
-## 🏆 Why This Wins
+## 📋 Evaluation Summary
 
 | Criteria | Implementation |
 |----------|----------------|
