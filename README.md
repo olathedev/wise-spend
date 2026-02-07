@@ -101,18 +101,62 @@ Instead of just tracking expenses, we:
     ⬆️ Every step traced in Opik with nested parent-child spans
 ```
 
+### Grow Page Flow (Knowledge + Investments + Chat)
+
+```
+    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+    │   USER OPENS      │───▶│  GROW PAGE       │───▶│  TWO TABS        │
+    │   GROW            │    │                  │    │                  │
+    │   (sidebar)       │    │  Learning &      │    │  Knowledge       │
+    │                   │    │  Investing hub   │    │  | Investments   │
+    └──────────────────┘    └──────────────────┘    └────────┬─────────┘
+                                                              │
+           ┌──────────────────────────────────────────────────┼──────────────────────────────────────────────────┐
+           │                                                  │                                                  │
+           ▼                                                  ▼                                                  ▼
+    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+    │  KNOWLEDGE TAB   │───▶│  LITERACY CARDS  │───▶│  GENERATE QUIZ   │───▶│  GEMINI CURATES  │───▶│  USER TAKES QUIZ │
+    │                  │    │  12 topics       │    │  (5 questions)   │    │  5 MC questions  │    │  Score + explain │
+    │  50/30/20,       │    │  Click topic     │    │  On demand       │    │  Traced in Opik  │    │  "New quiz"      │
+    │  compound, etc.  │    │                  │    │                  │    │                  │    │  anytime         │
+    └──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
+           │
+           │
+           ▼
+    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+    │  INVESTMENT TAB  │───▶│  ALPHA VANTAGE   │───▶│  CURATED LIST    │
+    │                  │    │  Real-time data  │    │  ETFs, stocks    │
+    │  Filters: type   │    │  Prices, % change│    │  Risk, min $     │
+    │  Risk, sort      │    │                  │    │  Descriptions    │
+    └──────────────────┘    └──────────────────┘    └────────┬─────────┘
+                                                              │
+                                                              ▼
+    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+    │  AI CHAT PANEL   │◀───│  CONTEXTUAL Q&A  │───▶│  USER ACTION     │
+    │  (side of Grow)  │    │                  │    │                  │
+    │                  │    │  "What is VTI?"  │    │  Informed about  │
+    │  Same as AI      │    │  "Explain 50/30" │    │  concepts &      │
+    │  Coach; Opik     │    │  Traced in Opik  │    │  opportunities   │
+    │  traced          │    │                  │    │                  │
+    └──────────────────┘    └──────────────────┘    └──────────────────┘
+
+    ⬆️ Quiz generation and Grow chat traced in Opik (chat-gemini-2.5-flash, quiz generation spans)
+```
+
 ### Opik Tracing Architecture
 
 ```
 OPIK INTEGRATION
 ├── Trace Creation ──────────── Every AI call creates a trace
-│   ├── chat-gemini-2.5-flash ─── Chat conversations
-│   └── analyze-receipt-image ─── Receipt analysis (main feature)
+│   ├── chat-gemini-2.5-flash ─── Chat (AI Coach + Grow panel)
+│   ├── analyze-receipt-image ─── Receipt analysis (main feature)
+│   └── generate-quizzes ──────── Grow: AI-generated literacy quizzes
 │
 ├── Nested Spans ─────────────── Detailed reasoning chain
 │   ├── preprocess-receipt-image ─ Image preprocessing
 │   ├── gemini-multimodal-analysis ─ LLM vision analysis
-│   └── calculate-goal-impact ─── Goal impact calculation
+│   ├── calculate-goal-impact ─── Goal impact calculation
+│   └── (Grow) quiz curation ───── Quiz generation for Knowledge tab
 │
 ├── Error Handling ───────────── All errors logged to traces
 │   └── Error metadata captured ─ Error type, message, stack
@@ -239,6 +283,18 @@ We ask: *"Is that $6.50 latte worth 15 minutes of your future retirement?"*
 ## 🔍 Opik Integration (Deep)
 
 WiseSpend showcases **production-grade Opik integration** with comprehensive tracing, evaluation, and optimization.
+
+**Opik integration — files for reviewers (traverse here):**
+
+| File | Role |
+|------|------|
+| `backend/src/infrastructure/services/OpikService.ts` | Core Opik client: init, `createTrace()`, `flush()`, env config (OPIK_API_KEY, OPIK_PROJECT_NAME, OPIK_WORKSPACE) |
+| `backend/src/infrastructure/services/GoogleGenAIService.ts` | Traces for **chat** and **receipt analysis** reasoning chain; creates spans (e.g. `analyze-receipt-image`, chat trace), logs token usage and errors |
+| `backend/src/application/use-cases/FinancialAssistantChatUseCase.ts` | Trace `financial-assistant-chat` for AI Coach (and Grow panel) conversations |
+| `backend/src/application/use-cases/GenerateQuizzesUseCase.ts` | Trace `generate-personalized-quizzes` for Grow Knowledge tab quiz generation |
+| `backend/src/infrastructure/services/QuizCuratorAgent.ts` | Nested trace `generate-quiz-for-concept`; flat input/output for Opik LLM-as-a-Judge |
+| `backend/src/infrastructure/services/QuizEvaluator.ts` | Trace `quiz-llm-judge-evaluation`; LLM-as-a-Judge evaluation of quiz content (when EVALUATE_QUIZZES=true) |
+| `backend/src/index.ts` | Graceful shutdown: calls `opikService.flush()` on SIGTERM/SIGINT so traces are sent before exit |
 
 ### 📊 Full Tracing Coverage
 
