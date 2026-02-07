@@ -55,9 +55,9 @@ export interface CompleteQuizResponse {
 }
 
 /**
- * Generate personalized quizzes for the logged-in user
+ * Generate one personalized quiz (5 questions). Replaces any existing AI quiz.
  */
-export const generateQuizzes = async (count: number = 10): Promise<GenerateQuizzesResponse['data']> => {
+export const generateQuizzes = async (): Promise<GenerateQuizzesResponse['data']> => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('auth_token');
     if (!token) {
@@ -67,7 +67,7 @@ export const generateQuizzes = async (count: number = 10): Promise<GenerateQuizz
 
   try {
     const response = await apiClient.post<GenerateQuizzesResponse>('/quiz/generate', {
-      count,
+      count: 1,
     });
 
     if (!response.data.success || !response.data.data) {

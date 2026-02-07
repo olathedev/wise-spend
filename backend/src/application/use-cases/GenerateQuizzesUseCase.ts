@@ -1,6 +1,7 @@
 import { IUseCase } from '@application/interfaces/IUseCase';
 import { Quiz } from '@domain/entities/Quiz';
 import { getAIService } from '@infrastructure/services';
+import { QuizEvaluator } from '@infrastructure/services/QuizEvaluator';
 import { QuizCuratorAgent } from '@infrastructure/services/QuizCuratorAgent';
 import { UserRepository } from '@infrastructure/repositories/UserRepository';
 import { ExpenseRepository } from '@infrastructure/repositories/ExpenseRepository';
@@ -39,6 +40,7 @@ function fingerprintQuestion(text: string, userName?: string): string {
 
 export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, GenerateQuizzesResponse> {
   private quizCuratorAgent: QuizCuratorAgent;
+  private quizEvaluator: QuizEvaluator;
   private quizRepository: QuizRepository;
   private opikService = getOpikService();
 
@@ -55,11 +57,13 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
       expenseRepo,
       aiService,
     );
+    this.quizEvaluator = new QuizEvaluator(aiService);
     this.quizRepository = quizRepository || new QuizRepository();
   }
 
   async execute(request: GenerateQuizzesRequest): Promise<GenerateQuizzesResponse> {
-    const { userId, count = 5 } = request; // Default to 5 quizzes
+    const { userId } = request;
+    const count = 1; // Single AI quiz card (5 questions); generating a new one replaces the current
 
     // Create Opik trace for quiz generation
     const trace = this.opikService.createTrace('generate-personalized-quizzes', {
@@ -71,7 +75,7 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
     });
 
     try {
-      // Load user context
+      // Load user context (no DB save — quiz returned in response only)
       const contextSpan = trace.span({
         name: 'load-user-financial-context',
         type: 'general',
@@ -81,7 +85,7 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
       const context = await this.quizCuratorAgent.loadUserContext(userId);
       contextSpan.end();
 
-      // Identify relevant concepts
+      // Identify one concept for the single quiz
       const conceptsSpan = trace.span({
         name: 'identify-relevant-concepts',
         type: 'general',
@@ -95,41 +99,30 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
       const concepts = this.quizCuratorAgent.identifyRelevantConcepts(context);
       conceptsSpan.end();
 
-      // Check existing quizzes to avoid duplicates
-      const existingQuizzes = await this.quizRepository.findByUserId(userId);
-      const existingConcepts = new Set(existingQuizzes.map(q => q.concept));
+      const defaultConcepts = [
+        'Budgeting Basics',
+        'Emergency Fund',
+        'Debt Management',
+        'Investment Basics',
+        'Credit Score',
+        'Savings Strategies',
+        'Financial Goal Setting',
+        'Expense Tracking',
+      ];
 
-      // Filter out concepts that already have quizzes
-      const newConcepts = concepts.filter(c => !existingConcepts.has(c));
-
-      // If we need more quizzes, add some default concepts
-      const conceptsToGenerate = newConcepts.slice(0, count);
-      if (conceptsToGenerate.length < count) {
-        const defaultConcepts = [
-          'Budgeting Basics',
-          'Emergency Fund',
-          'Debt Management',
-          'Investment Basics',
-          'Credit Score',
-          'Savings Strategies',
-          'Financial Goal Setting',
-          'Expense Tracking',
-        ];
-        
-        for (const concept of defaultConcepts) {
-          if (conceptsToGenerate.length >= count) break;
-          if (!existingConcepts.has(concept)) {
-            conceptsToGenerate.push(concept);
-          }
-        }
+      const conceptsToGenerate: string[] = [];
+      if (concepts.length > 0) {
+        conceptsToGenerate.push(concepts[0]);
+      }
+      if (conceptsToGenerate.length === 0) {
+        conceptsToGenerate.push(defaultConcepts[Math.floor(Math.random() * defaultConcepts.length)]);
       }
 
-      // Generate quizzes SEQUENTIALLY so each quiz knows questions already used in others
       const generateSpan = trace.span({
         name: 'generate-quizzes-for-concepts',
         type: 'llm',
         input: {
-          conceptCount: conceptsToGenerate.length,
+          conceptCount: 1,
           concepts: conceptsToGenerate,
         },
         metadata: {
@@ -137,67 +130,96 @@ export class GenerateQuizzesUseCase implements IUseCase<GenerateQuizzesRequest, 
         },
       });
 
-      const alreadyUsedQuestions: string[] = [];
       const rawQuizzes: Quiz[] = [];
-
-      for (const concept of conceptsToGenerate) {
-        try {
-          const quiz = await this.quizCuratorAgent.generateQuizForConcept(
-            concept,
-            context,
-            alreadyUsedQuestions,
-          );
-          if (quiz) {
-            rawQuizzes.push(quiz);
-            quiz.questions.forEach((q) => alreadyUsedQuestions.push(q.question));
-          }
-        } catch (error) {
-          Logger.error(`Failed to generate quiz for concept: ${concept}`, error);
+      const concept = conceptsToGenerate[0];
+      try {
+        const quiz = await this.quizCuratorAgent.generateQuizForConcept(
+          concept,
+          context,
+          [],
+        );
+        if (quiz) {
+          rawQuizzes.push(quiz);
         }
+      } catch (error) {
+        Logger.error(`Failed to generate quiz for concept: ${concept}`, error);
+        throw error;
       }
 
-      // Post-generation deduplication: remove duplicate questions across quizzes
       const generatedQuizzes = this.deduplicateQuestionsAcrossQuizzes(
         rawQuizzes,
         context.user.name,
       );
+      if (generatedQuizzes.length === 0) {
+        throw new Error('Quiz generation failed. Please try again.');
+      }
+
+      // Assign temp id for response (not persisted)
+      const quiz = generatedQuizzes[0];
+      if (!quiz.id) {
+        (quiz as { id?: string }).id = `quiz-${Date.now()}`;
+      }
+
+      // Optional: LLM-as-a-Judge evaluation (set EVALUATE_QUIZZES=true to enable)
+      const evaluateQuizzes = process.env.EVALUATE_QUIZZES === 'true';
+      if (evaluateQuizzes) {
+        const evaluationSpan = trace.span({
+          name: 'evaluate-quizzes-llm-judge',
+          type: 'general',
+          input: { quizCount: generatedQuizzes.length },
+        });
+        const evaluationResults: Array<{ concept: string; quizId?: string; score: number; evaluation: Record<string, number> }> = [];
+        for (const quiz of generatedQuizzes) {
+          try {
+            const evalResult = await this.quizEvaluator.evaluateQuiz(
+              quiz,
+              quiz.concept,
+              {
+                monthlyIncome: context.user.monthlyIncome,
+                monthlySpending: context.monthlySpending,
+                goals: context.user.financialGoals,
+              },
+            );
+            evaluationResults.push({
+              concept: quiz.concept,
+              quizId: quiz.id,
+              score: evalResult.overallScore,
+              evaluation: evalResult.evaluation,
+            });
+            Logger.info(`Quiz evaluation complete for ${quiz.concept}`, {
+              score: evalResult.overallScore,
+            });
+          } catch (error) {
+            Logger.error(`Failed to evaluate quiz: ${quiz.concept}`, error);
+          }
+        }
+        evaluationSpan.update({
+          output: {
+            evaluatedCount: evaluationResults.length,
+            averageScore: evaluationResults.length > 0
+              ? evaluationResults.reduce((sum, r) => sum + r.score, 0) / evaluationResults.length
+              : 0,
+            results: evaluationResults,
+          },
+        });
+        evaluationSpan.end();
+      }
 
       generateSpan.end();
 
-      // Save quizzes to database
-      const saveSpan = trace.span({
-        name: 'save-quizzes-to-database',
-        type: 'general',
-        input: {
-          quizCount: generatedQuizzes.length,
-        },
-      });
-
-      const savedQuizzes: Quiz[] = [];
-      for (const quiz of generatedQuizzes) {
-        try {
-          const saved = await this.quizRepository.create(quiz);
-          savedQuizzes.push(saved);
-        } catch (error) {
-          Logger.error(`Failed to save quiz: ${quiz.title}`, error);
-        }
-      }
-
-      saveSpan.end();
-
-      // Update trace with results
+      // Update trace with results (no DB save)
       trace.update({
         output: {
-          quizzesGenerated: savedQuizzes.length,
+          quizzesGenerated: generatedQuizzes.length,
           concepts: conceptsToGenerate,
         },
       });
       trace.end();
 
       return {
-        quizzes: savedQuizzes,
+        quizzes: generatedQuizzes,
         conceptsIdentified: conceptsToGenerate,
-        totalGenerated: savedQuizzes.length,
+        totalGenerated: generatedQuizzes.length,
       };
     } catch (error) {
       Logger.error('Error generating quizzes', error);

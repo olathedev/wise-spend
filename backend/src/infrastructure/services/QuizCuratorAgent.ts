@@ -7,6 +7,7 @@ import { IExpenseRepository } from '@domain/repositories/IExpenseRepository';
 import { IAIService } from '@domain/interfaces/IAIService';
 import { Logger } from '@shared/utils/logger';
 import { parseAmountFromTitle } from '@shared/utils/parseAmountFromTitle';
+import { getOpikService } from './OpikService';
 
 export interface UserFinancialContext {
   user: User;
@@ -180,6 +181,24 @@ export class QuizCuratorAgent {
     alreadyUsedQuestions: string[] = [],
   ): Promise<Quiz> {
     const prompt = this.buildQuizGenerationPrompt(concept, context, alreadyUsedQuestions);
+    const opikService = getOpikService();
+    
+    // Create Opik trace with input/output structure for LLM-as-a-Judge evaluation.
+    // Trace input must be flat so Opik shows input.concept, input.userContext, etc. in the rule mapper.
+    const quizTrace = opikService.createTrace('generate-quiz-for-concept', {
+      concept,
+      userContext: {
+        name: context.user.name,
+        monthlyIncome: context.user.monthlyIncome,
+        monthlySpending: context.monthlySpending,
+        goals: context.user.financialGoals,
+      },
+      promptPreview: prompt.substring(0, 500),
+    }, {
+      operation: 'quiz-generation',
+      concept,
+      provider: 'google-genai',
+    });
     
     try {
       // Generate with retry logic for truncated responses
@@ -190,8 +209,8 @@ export class QuizCuratorAgent {
       while (attempts < maxAttempts) {
         try {
           response = await this.aiService.generateText(prompt, {
-            temperature: 0.55, // Higher for variety across quizzes; avoids repetitive outputs
-            maxTokens: 2500,
+            temperature: 0.4,
+            maxTokens: 1600,
           });
           
           // Check if response looks complete (ends with } or ])
@@ -234,115 +253,78 @@ export class QuizCuratorAgent {
         questionCount: quizData.questions.length,
       });
       
-      return new Quiz(
+      const quiz = new Quiz(
         context.user.id!,
         quizData.title,
         quizData.description,
         concept,
         quizData.questions,
       );
+      
+      // Update trace with OUTPUT for Opik LLM-as-a-Judge evaluation
+      quizTrace.update({
+        output: {
+          quiz: {
+            title: quizData.title,
+            description: quizData.description,
+            concept,
+            questionCount: quizData.questions.length,
+            questions: quizData.questions.map(q => ({
+              question: q.question,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation,
+            })),
+          },
+          rawResponse: response.substring(0, 1000), // First 1000 chars for evaluation
+        },
+        metadata: {
+          questionCount: quizData.questions.length,
+          success: true,
+        },
+      });
+      quizTrace.end();
+      
+      return quiz;
     } catch (error) {
       Logger.error(`Error generating quiz for concept: ${concept}`, {
         concept,
         errorMessage: error instanceof Error ? error.message : String(error),
         errorStack: error instanceof Error ? error.stack : undefined,
       });
-      // Fallback to a basic quiz structure
-      return this.createFallbackQuiz(concept, context);
+      
+      // Update trace with error
+      quizTrace.update({
+        output: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+        metadata: {
+          success: false,
+          error: true,
+        },
+      });
+      quizTrace.end();
+      throw error;
     }
   }
 
   /**
-   * Build prompt for AI to generate personalized quiz
+   * Minimal prompt for quiz generation (cost-optimized: small input, tight output).
    */
   private buildQuizGenerationPrompt(
     concept: string,
     context: UserFinancialContext,
     alreadyUsedQuestions: string[] = [],
   ): string {
-    const { user, expenseSummary, monthlySpending } = context;
-    const monthlyIncome = user.monthlyIncome;
-
-    const bannedSection =
+    const { user, monthlySpending } = context;
+    const income = user.monthlyIncome ?? 0;
+    const used =
       alreadyUsedQuestions.length > 0
-        ? `
-
-ALREADY USED IN OTHER QUIZZES - DO NOT GENERATE ANYTHING SIMILAR:
-${alreadyUsedQuestions.slice(0, 15).map((q) => `- "${q.substring(0, 80)}${q.length > 80 ? '...' : ''}"`).join('\n')}
-Your 5 questions must be COMPLETELY DIFFERENT from all of the above.`
+        ? ` Avoid: ${alreadyUsedQuestions.slice(0, 3).map((q) => q.substring(0, 30)).join('; ')}`
         : '';
 
-    return `You are a financial education expert creating a personalized quiz for a user learning about "${concept}".${bannedSection}
-
-USER PROFILE (KEEP REFERENCES SHORT):
-- Name: ${user.name}
-- Income: ${monthlyIncome ? `$${monthlyIncome.toLocaleString()}` : 'Not set'}
-- Spending: $${monthlySpending.toLocaleString()}
-- Goals: ${user.financialGoals?.slice(0, 2).join(', ') || 'None'}
-
-CRITICAL - CONCEPT-SPECIFIC QUESTIONS ONLY:
-Every question MUST test knowledge that is SPECIFIC to "${concept}" and ONLY that concept.
-- For "Emergency Fund": ask about emergency fund rules, 3-6 months rule, where to keep it, when to use it, rebuilding after use
-- For "Budgeting Basics" or "50/30/20 Rule": calculations and allocation rules are OK
-- For "Debt Management": ask about debt payoff strategies, interest, snowball vs avalanche
-- For "Investment Basics": ask about stocks, bonds, diversification, risk
-- For "Credit Score": ask about factors, utilization, building credit
-- For "Home Buying" or "Down Payment Planning": ask about down payment %, PMI, closing costs, pre-approval - NOT "how much can you save"
-- For "Financial Goal Setting": ask about SMART goals, prioritization, milestones - NOT generic savings calculations
-- For "Savings Strategies" or "Budgeting": savings calculations ARE appropriate
-- DO NOT use generic savings questions like "how much could you save with income X and spending Y" unless the quiz is specifically about Budgeting or Savings
-- DO NOT repeat the same question pattern across different concepts
-- Each of the 5 questions must cover a DIFFERENT sub-topic within "${concept}"
-
-TASK:
-Create a personalized quiz about "${concept}" with EXACTLY 5 questions. The quiz should:
-1. Test knowledge SPECIFIC to "${concept}" - each question must be about that concept
-2. Cover 5 DIFFERENT aspects or sub-topics of "${concept}"
-3. Reference user data ONLY when it fits naturally (e.g., for Emergency Fund: "With $X monthly expenses, how much should your emergency fund be?")
-4. Vary question types: definitions, scenarios, best practices, rules - but ALL must be about "${concept}"
-5. NEVER use generic "income minus spending = savings" style questions unless the concept is Budgeting/Savings
-
-JSON FORMAT:
-{
-  "title": "Short title",
-  "description": "Brief description",
-  "questions": [
-    {
-      "question": "Short question (max 100 words)",
-      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-      "correctAnswer": 0,
-      "explanation": "Brief explanation (max 50 words)"
-    }
-  ]
-}
-
-CRITICAL REQUIREMENTS:
-- Generate EXACTLY 5 questions (no more, no less)
-- Each question must have exactly 4 options
-- correctAnswer must be a number: 0, 1, 2, or 3 (0-based index)
-- Keep explanations under 50 words
-- Keep questions under 100 words
-- Keep options under 10 words each
-- Return ONLY valid JSON - no markdown, no code blocks
-- Ensure JSON is complete and properly closed
-
-FORBIDDEN (never generate these):
-- "How much could you potentially save each month towards your [goal]?" (generic - not concept-specific)
-- "With income $X and spending $Y, how much can you save?" (unless concept is Budgeting/Savings)
-- Any question that could appear in a quiz about a different concept
-- Duplicate or near-duplicate question patterns
-
-EXAMPLE - For "Emergency Fund" (concept-specific):
-{
-  "title": "Emergency Fund Quiz",
-  "description": "Test your emergency fund knowledge",
-  "questions": [
-    {"question": "How many months of expenses should an emergency fund typically cover?", "options": ["1-2 months", "3-6 months", "12 months", "24 months"], "correctAnswer": 1, "explanation": "3-6 months covers most emergencies like job loss or medical bills."},
-    {"question": "Where is the best place to keep an emergency fund?", "options": ["Stock market", "High-yield savings account", "Under mattress", "Cryptocurrency"], "correctAnswer": 1, "explanation": "Savings accounts are liquid and FDIC insured."}
-  ]
-}
-
-REMEMBER: Every question must be about "${concept}" specifically. No generic savings questions.`;
+    return `Quiz "${concept}". User spending $${monthlySpending}, income $${income}.${used}
+Reply with ONLY raw JSON, no markdown and no \`\`\` code fences: {"title":"","description":"","questions":[{"question":"","options":["","","",""],"correctAnswer":0,"explanation":""}]} Exactly 5 questions, 4 options, correctAnswer 0-3.`;
   }
 
   /**
@@ -363,23 +345,21 @@ REMEMBER: Every question must be about "${concept}" specifically. No generic sav
         responseLength: response.length,
       });
 
-      // Try to extract JSON from response (handle markdown code blocks)
+      // Strip markdown first (handles truncated responses with no closing ```)
       let jsonStr = response.trim();
-      
-      // Remove markdown code blocks
-      if (jsonStr.includes('```json')) {
-        const jsonMatch = jsonStr.match(/```json\s*([\s\S]*?)\s*```/);
+      jsonStr = jsonStr.replace(/^```(?:json)?\s*\n?/i, '').replace(/\s*```\s*$/, '').trim();
+
+      // If still wrapped, try to extract from full block (when closing ``` exists)
+      if (jsonStr.includes('```')) {
+        const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           jsonStr = jsonMatch[1].trim();
-        }
-      } else if (jsonStr.includes('```')) {
-        const codeMatch = jsonStr.match(/```\s*([\s\S]*?)\s*```/);
-        if (codeMatch && codeMatch[1]) {
-          jsonStr = codeMatch[1].trim();
+        } else {
+          jsonStr = jsonStr.replace(/^```(?:json)?\s*/i, '').split(/\s*```/)[0].trim();
         }
       }
 
-      // Try to find JSON object in the string if it's embedded in text
+      // Find JSON object if embedded in text
       if (!jsonStr.startsWith('{')) {
         const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -392,42 +372,37 @@ REMEMBER: Every question must be about "${concept}" specifically. No generic sav
       try {
         parsed = JSON.parse(jsonStr);
       } catch (parseError) {
+        const errMsg = parseError instanceof Error ? parseError.message : String(parseError);
         Logger.warn('JSON parse failed, attempting comprehensive repair', {
           concept,
-          error: parseError instanceof Error ? parseError.message : String(parseError),
+          error: errMsg,
           jsonLength: jsonStr.length,
           lastChars: jsonStr.substring(Math.max(0, jsonStr.length - 300)),
         });
         
-        // Repair unterminated strings and incomplete structures
         let repairedJson = jsonStr.trim();
-      
-        const stringMatches = [...repairedJson.matchAll(/"([^"\\]|\\.)*"/g)];
-        let lastStringEnd = -1;
-        if (stringMatches.length > 0) {
-          const lastMatch = stringMatches[stringMatches.length - 1];
-          lastStringEnd = lastMatch.index! + lastMatch[0].length;
-        }
         
-        // If we're in the middle of a string, close it
-        if (lastStringEnd < repairedJson.length) {
-          // Check if we're inside quotes
-          const afterLastString = repairedJson.substring(lastStringEnd);
-          const openQuotes = (repairedJson.substring(0, lastStringEnd).match(/"/g) || []).length;
-          const closeQuotes = (repairedJson.substring(0, lastStringEnd).match(/"/g) || []).length;
-          
-          // If we have an odd number of quotes, we're in an unterminated string
-          if (openQuotes % 2 === 1) {
-            // Find where the string started and close it
-            let stringStart = lastStringEnd;
-            for (let i = lastStringEnd - 1; i >= 0; i--) {
-              if (repairedJson[i] === '"' && (i === 0 || repairedJson[i - 1] !== '\\')) {
-                stringStart = i;
-                break;
-              }
+        // If error gives a position (e.g. "Unterminated string in JSON at position 234"), truncate there and close
+        const positionMatch = errMsg.match(/position\s+(\d+)/i);
+        if (positionMatch) {
+          const pos = parseInt(positionMatch[1], 10);
+          if (pos > 0 && pos <= repairedJson.length) {
+            repairedJson = repairedJson.substring(0, pos) + '"';
+          }
+        } else {
+          // Fallback: find last complete string and close any open string after it
+          const stringMatches = [...repairedJson.matchAll(/"([^"\\]|\\.)*"/g)];
+          let lastStringEnd = -1;
+          if (stringMatches.length > 0) {
+            const lastMatch = stringMatches[stringMatches.length - 1];
+            lastStringEnd = lastMatch.index! + lastMatch[0].length;
+          }
+          if (lastStringEnd >= 0 && lastStringEnd < repairedJson.length) {
+            const before = repairedJson.substring(0, lastStringEnd);
+            const quoteCount = (before.match(/"/g) || []).length;
+            if (quoteCount % 2 === 1) {
+              repairedJson = repairedJson.substring(0, lastStringEnd) + '"' + repairedJson.substring(lastStringEnd);
             }
-            // Close the string
-            repairedJson = repairedJson.substring(0, lastStringEnd) + '"' + repairedJson.substring(lastStringEnd);
           }
         }
         

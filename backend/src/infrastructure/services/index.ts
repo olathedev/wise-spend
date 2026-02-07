@@ -34,3 +34,6 @@ export { FinancialAssistantAgent } from './FinancialAssistantAgent';
 export type { UserFinancialContext } from './FinancialAssistantAgent';
 export { QuizCuratorAgent } from './QuizCuratorAgent';
 export type { UserFinancialContext as QuizUserFinancialContext } from './QuizCuratorAgent';
+
+export { QuizEvaluator } from './QuizEvaluator';
+export type { QuizEvaluationResult } from './QuizEvaluator';

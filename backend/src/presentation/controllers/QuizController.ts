@@ -20,13 +20,8 @@ export class QuizController extends BaseController {
 
     const request: GenerateQuizzesRequest = {
       userId,
-      count: req.body.count ? parseInt(req.body.count, 10) : 5, // Default to 5
+      count: 1, // Single quiz card (5 questions); generating again replaces the current one
     };
-
-    // Validate count
-    if (request.count && (request.count < 1 || request.count > 10)) {
-      return next(new ValidationError('Count must be between 1 and 10'));
-    }
 
     const useCase = new GenerateQuizzesUseCase();
     

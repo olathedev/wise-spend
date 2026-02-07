@@ -6,6 +6,8 @@
 [![Powered by Opik](https://img.shields.io/badge/Powered%20by-Opik-purple)](https://comet.com/opik)
 [![Gemini 2.5 Flash](https://img.shields.io/badge/Gemini-2.5%20Flash-orange)](https://ai.google.dev)
 
+**For judges:** This README is structured so you can quickly see the problem, solution, architecture, **all features (including the Grow page)**, and a suggested evaluation path. Use **Product at a Glance** and **Demo Scenarios** to know what to try in the app; use **Why This Wins** for scoring alignment.
+
 ---
 
 ## 🎯 The Problem
@@ -394,19 +396,19 @@ Frontend runs on `http://localhost:3000`
 3. **Visual progress**: "You're 2 weeks closer to your goal!"
 4. **Motivation**: Seeing real progress encourages continued saving
 
-### Scenario 4: Gamified Learning
+### Scenario 4: Grow Page — Knowledge + Quiz
 
-1. **User browses Financial Literacy Cards** → Sees 12 topics
-2. **Clicks "The 50/30/20 Rule"** → Quiz modal opens
-3. **Completes quiz** → Learns budgeting fundamentals
-4. **Progress tracked** → Can revisit topics anytime
+1. **User opens Grow** (sidebar) → Defaults to **Knowledge** tab
+2. **Sees financial literacy cards** → 12 topics (50/30/20, compound growth, emergency fund, etc.)
+3. **Clicks a topic** → **Generate quiz** → AI returns 5 multiple-choice questions
+4. **Completes quiz** → Sees score and explanations; can generate a new quiz anytime
 
-### Scenario 5: Investment Discovery
+### Scenario 5: Grow Page — Investment Discovery
 
-1. **User navigates to Grow page** → Switches to "Investment Suggestions" tab
-2. **Sees curated opportunities** → ETFs, stocks with real-time data
-3. **Reviews risk levels** → Low, Medium, Medium-High classifications
-4. **Reads descriptions** → Educational content for each opportunity
+1. **User opens Grow** → Switches to **Investment Suggestions** tab
+2. **Sees curated opportunities** → ETFs (SPY, VTI, VEA, BND, VNQ), stocks; real-time prices (Alpha Vantage)
+3. **Filters by type** → ETF, Stock, Bond, REIT; reviews risk levels and descriptions
+4. **Uses side AI panel** → Asks follow-up questions about a ticker or concept
 5. **Makes informed decision** → With full context and disclaimers
 
 ---
@@ -455,7 +457,7 @@ frontend/
 │   │   ├── transactions/page.tsx        # 📝 Transaction history
 │   │   ├── analytics/page.tsx           # 📈 Spending analytics
 │   │   ├── goals/page.tsx               # 🎯 Financial goals
-│   │   ├── grow/page.tsx                # 🌱 Grow page (Knowledge + Investments)
+│   │   ├── grow/page.tsx                # 🌱 Grow page — Knowledge tab (literacy + AI quizzes) + Investment Suggestions tab
 │   │   └── ai-coach/page.tsx            # 🤔 Socratic coach chat
 │   └── scan/page.tsx                    # 📸 Receipt scanning
 ├── components/

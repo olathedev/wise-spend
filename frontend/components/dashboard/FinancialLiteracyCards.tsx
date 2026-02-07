@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Lightbulb, 
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import QuizModal from './QuizModal';
 import { QUIZ_DATA } from './quizData';
-import { getQuizzes, generateQuizzes, completeQuiz, type Quiz } from '@/services/quizService';
+import { generateQuizzes, type Quiz } from '@/services/quizService';
 import type { QuizQuestion } from './QuizModal';
 
 const LITERACY_TOPICS = [
@@ -86,7 +86,6 @@ const CONCEPT_COLORS: Record<string, { color: string; bg: string; border: string
 
 export default function FinancialLiteracyCards() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<typeof LITERACY_TOPICS[0] | null>(null);
@@ -96,36 +95,22 @@ export default function FinancialLiteracyCards() {
   const [stats, setStats] = useState({ total: 0, completed: 0, pending: 0 });
   const [topicQuestions, setTopicQuestions] = useState<QuizQuestion[]>([]);
 
-  // Load quizzes on mount
-  useEffect(() => {
-    loadQuizzes();
-  }, []);
+  // AI quiz is not loaded from DB — only from last generate (no persist)
 
-  const loadQuizzes = async () => {
-    try {
-      setIsLoading(true);
-      const data = await getQuizzes({ limit: 10 });
-      setQuizzes(data.quizzes);
-      setStats(data.stats);
-    } catch (error: any) {
-      console.error('Error loading quizzes:', error);
-      // If user is not logged in, show empty state
-      if (error.message?.includes('log in')) {
-        setQuizzes([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGenerateQuizzes = async () => {
+  const handleGenerateQuiz = async () => {
     try {
       setIsGenerating(true);
-      const data = await generateQuizzes(5); // Generate 5 quizzes (5 questions each)
-      await loadQuizzes(); // Reload to get updated list
+      const data = await generateQuizzes(); // One quiz, 5 questions; AI only, not saved
+      setQuizzes(data.quizzes?.length ? [data.quizzes[0]] : []);
+      setStats({
+        total: data.quizzes?.length ?? 0,
+        completed: 0,
+        pending: data.quizzes?.length ?? 0,
+      });
     } catch (error: any) {
-      console.error('Error generating quizzes:', error);
-      alert(error.message || 'Failed to generate quizzes. Please try again.');
+      console.error('Error generating quiz:', error);
+      setQuizzes([]);
+      alert(error.message || 'Failed to generate quiz. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -165,18 +150,31 @@ export default function FinancialLiteracyCards() {
   const handleQuizComplete = async (answers: number[]) => {
     if (!selectedQuiz || selectedQuiz.isCompleted) return;
 
-    try {
-      await completeQuiz(selectedQuiz.id, answers);
-      await loadQuizzes(); // Reload to update stats
-      // Update selected quiz to show completion
-      const updatedQuiz = quizzes.find(q => q.id === selectedQuiz.id);
-      if (updatedQuiz) {
-        setSelectedQuiz(updatedQuiz);
-      }
-    } catch (error: any) {
-      console.error('Error completing quiz:', error);
-      alert(error.message || 'Failed to save quiz results. Please try again.');
-    }
+    // Score locally (no API — quiz not saved to DB)
+    const total = selectedQuiz.questions.length;
+    const correct = answers.reduce(
+      (acc, choice, i) =>
+        acc + (choice === selectedQuiz.questions[i]?.correctAnswer ? 1 : 0),
+      0,
+    );
+    const scorePct = total ? Math.round((correct / total) * 100) : 0;
+
+    const updated = {
+      ...selectedQuiz,
+      isCompleted: true,
+      score: scorePct,
+      answeredCorrectly: correct,
+      totalQuestions: total,
+    };
+    setSelectedQuiz(updated);
+    setQuizzes((prev) =>
+      prev.map((q) => (q.id === selectedQuiz.id ? updated : q)),
+    );
+    setStats((s) => ({
+      ...s,
+      completed: 1,
+      pending: 0,
+    }));
   };
 
   const handleCloseQuiz = () => {
@@ -264,23 +262,26 @@ export default function FinancialLiteracyCards() {
         })}
       </div>
 
-      {/* AI Personalized Quizzes (optional) */}
+      {/* AI Personalized Quiz — one card, 5 questions; generate new replaces current */}
       <div className="border-t border-slate-200 pt-8">
         <div className="flex justify-between items-end mb-4 px-1">
           <div>
-            <h4 className="text-lg font-bold text-slate-900">AI Personalized Quizzes</h4>
-            <p className="text-sm text-slate-500">Custom quizzes based on your spending</p>
+            <h4 className="text-lg font-bold text-slate-900">AI Personalized Quiz</h4>
+            <p className="text-sm text-slate-500">One custom quiz (5 questions) based on your spending. Generate a new one to replace it.</p>
           </div>
           <div className="flex items-center gap-3">
             {stats.total > 0 && (
               <div className="text-sm text-slate-600">
-                <span className="font-semibold">{stats.completed}</span> completed •{' '}
-                <span className="font-semibold">{stats.pending}</span> pending
+                {quizzes[0]?.isCompleted ? (
+                  <span className="font-semibold text-emerald-600">Completed</span>
+                ) : (
+                  <span className="font-semibold">Not started</span>
+                )}
               </div>
             )}
             <button
-              onClick={handleGenerateQuizzes}
-              disabled={isGenerating || isLoading}
+              onClick={handleGenerateQuiz}
+              disabled={isGenerating}
               className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg font-semibold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
             >
               {isGenerating ? (
@@ -291,23 +292,23 @@ export default function FinancialLiteracyCards() {
               ) : (
                 <>
                   <RefreshCw size={16} />
-                  <span>Generate Quizzes</span>
+                  <span>{quizzes.length === 0 ? 'Generate quiz' : 'Generate new quiz'}</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {isLoading ? (
+        {isGenerating ? (
           <div className="text-center py-8">
             <Loader2 size={32} className="animate-spin text-teal-500 mx-auto" />
           </div>
         ) : quizzes.length === 0 ? (
           <p className="text-sm text-slate-500 py-4">
-            Generate AI quizzes tailored to your spending patterns.
+            No quiz yet. Click &quot;Generate quiz&quot; to get one tailored to your spending (5 questions).
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {quizzes.map((quiz) => {
               const IconComponent = getIconForConcept(quiz.concept);
               const colors = getColorsForConcept(quiz.concept);
